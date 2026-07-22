@@ -1,0 +1,8 @@
+- Build
+- CRUD
+- Search
+- Validation
+- Error Handling
+- README
+- AI Usage
+- Demo

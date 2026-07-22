@@ -1,0 +1,10 @@
+- Clean Architecture
+- Thin Controllers
+- Business logic in Services
+- Repository pattern
+- async/await
+- Strong typing
+- Input validation
+- Global error handling
+- Consistent naming
+- No duplicate code

@@ -1,0 +1,9 @@
+- User must login. No registration page; use a single seeded demo user (admin@example.com / Password123!).
+- No roles or permissions; authenticated user has full access to create, edit, delete, and comment.
+- Title is required.
+- Status: Open -> In Progress -> Closed.
+- Priority: Low, Medium, High.
+- Only existing tickets can receive comments. Comments are not paginated (load all).
+- Search should match Title OR Description only.
+- Simple JWT only. No refresh tokens, email verification, etc.
+- No ticket assignment, no attachments, no notifications, no dashboard/reports.
