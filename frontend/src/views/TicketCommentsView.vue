@@ -11,10 +11,34 @@ const comments = ref<Comment[]>([]);
 const newCommentText = ref('');
 const loading = ref(true);
 const submitLoading = ref(false);
+const transitionLoading = ref(false);
 const error = ref('');
 const submitError = ref('');
+const transitionError = ref('');
 const route = useRoute();
 const router = useRouter();
+
+const getPriorityClass = (priority: string) => {
+  switch (priority) {
+    case 'High': return 'badge-priority-high';
+    case 'Medium': return 'badge-priority-medium';
+    case 'Low': return 'badge-priority-low';
+    default: return '';
+  }
+};
+
+const updateStatus = async (nextStatus: string) => {
+  transitionLoading.value = true;
+  transitionError.value = '';
+  try {
+    await api.patch(`/tickets/${route.params.id}/status`, { status: nextStatus });
+    await fetchTicketAndComments();
+  } catch (err: any) {
+    transitionError.value = err.response?.data?.message || t('ticketForm.failedUpdate');
+  } finally {
+    transitionLoading.value = false;
+  }
+};
 
 const fetchTicketAndComments = async () => {
   loading.value = true;
@@ -102,15 +126,44 @@ const getStatusBadgeClass = (status: string) => {
     
     <div v-else-if="ticket" class="content-wrapper">
       <div class="card ticket-summary">
-        <h2 class="ticket-title">#{{ ticket.id }} {{ ticket.title }}</h2>
+        <div class="ticket-header-row">
+          <h2 class="ticket-title">#{{ ticket.id }} {{ ticket.title }}</h2>
+          <!-- Status Transition Control -->
+          <div v-if="ticket.status !== 'Closed'" class="status-transitions">
+            <button
+              v-if="ticket.status === 'Open'"
+              @click="updateStatus('In Progress')"
+              :disabled="transitionLoading"
+              class="btn btn-sm btn-primary"
+            >
+              <span v-if="transitionLoading" class="spinner spinner-sm"></span>
+              ⚙️ {{ t('comments.startWorkBtn') }}
+            </button>
+            <button
+              v-if="ticket.status === 'In Progress'"
+              @click="updateStatus('Closed')"
+              :disabled="transitionLoading"
+              class="btn btn-sm btn-success"
+            >
+              <span v-if="transitionLoading" class="spinner spinner-sm"></span>
+              ✅ {{ t('comments.closeTicketBtn') }}
+            </button>
+          </div>
+        </div>
+        
         <div class="meta">
           <span :class="['badge', getStatusBadgeClass(ticket.status)]">
             {{ t('ticketForm.statusLabel') }}: {{ t(`status.${ticket.status}`) }}
           </span>
-          <span class="badge badge-priority-medium">
+          <span :class="['badge', getPriorityClass(ticket.priority)]">
             {{ t('priority.priorityLabel') }}: {{ t(`priority.${ticket.priority}`) }}
           </span>
         </div>
+
+        <div v-if="transitionError" class="alert alert-danger mb-3">
+          ⚠️ {{ transitionError }}
+        </div>
+
         <p class="description">{{ ticket.description || t('tickets.noDescription') }}</p>
       </div>
 
@@ -279,4 +332,33 @@ const getStatusBadgeClass = (status: string) => {
   flex-direction: column;
   align-items: flex-start;
 }
+
+.ticket-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ticket-header-row .ticket-title {
+  margin-bottom: 0;
+}
+
+.status-transitions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-success {
+  background-color: var(--success-color, #10b981);
+  color: #ffffff;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #059669;
+}
 </style>
+

@@ -7,8 +7,14 @@ export class TicketService {
     return prisma.ticket.create({ data });
   }
 
-  async getAllTickets() {
+  async getAllTickets(search?: string) {
     return prisma.ticket.findMany({
+      where: search ? {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ]
+      } : undefined,
       orderBy: { createdAt: 'desc' }
     });
   }
@@ -23,6 +29,13 @@ export class TicketService {
     return prisma.ticket.update({
       where: { id },
       data
+    });
+  }
+
+  async updateTicketStatus(id: number, status: string) {
+    return prisma.ticket.update({
+      where: { id },
+      data: { status }
     });
   }
 

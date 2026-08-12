@@ -75,7 +75,8 @@ const messages = {
       filterOpen: 'Open Tickets',
       filterClosed: 'Closed Tickets',
       filterHighPriority: 'High Priority Tickets',
-      clearFilter: 'Clear Filter'
+      clearFilter: 'Clear Filter',
+      searchPlaceholder: 'Search tickets by title or description...'
     },
     ticketForm: {
       createHeader: 'Create New Ticket',
@@ -108,7 +109,9 @@ const messages = {
       postComment: 'Post Comment',
       postingComment: 'Posting...',
       commentRequired: 'Comment text is required.',
-      failedPost: 'Failed to add comment.'
+      failedPost: 'Failed to add comment.',
+      startWorkBtn: 'Start Work',
+      closeTicketBtn: 'Close Ticket'
     }
   },
   ar: {
@@ -185,7 +188,8 @@ const messages = {
       filterOpen: 'التذاكر المفتوحة',
       filterClosed: 'التذاكر المغلقة',
       filterHighPriority: 'التذاكر عالية الأهمية',
-      clearFilter: 'إلغاء التصفية'
+      clearFilter: 'إلغاء التصفية',
+      searchPlaceholder: 'ابحث عن التذاكر بالعنوان أو الوصف...'
     },
     ticketForm: {
       createHeader: 'إنشاء تذكرة جديدة',
@@ -218,7 +222,9 @@ const messages = {
       postComment: 'نشر التعليق',
       postingComment: 'جاري النشر...',
       commentRequired: 'نص التعليق مطلوب.',
-      failedPost: 'فشل إضافة التعليق.'
+      failedPost: 'فشل إضافة التعليق.',
+      startWorkBtn: 'بدء العمل',
+      closeTicketBtn: 'إغلاق التذكرة'
     }
   }
 };

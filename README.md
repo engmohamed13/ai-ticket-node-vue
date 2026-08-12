@@ -15,7 +15,7 @@ This project serves as a reference implementation showcasing:
 
 This repository is part of a series of AI-assisted implementations of the same Ticket Management System using different technology stacks.
 
-- [ai-ticket-node-vue (Current Stack: Express, TypeScript, Vue 3, PostgreSQL, Prisma)](https://github.com/placeholder-username/ai-ticket-node-vue)
+- [ai-ticket-node-vue (Current Stack: Express, TypeScript, Vue 3, PostgreSQL, Prisma)](https://github.com/engmohamed13/ai-ticket-node-vue)
 - [ai-ticket-fastapi-angular (Stack: FastAPI, Python, Angular, PostgreSQL, SQLAlchemy) - Coming Soon](#)
 - [ai-ticket-dotnet-angular (Stack: ASP.NET Core, C#, Angular, PostgreSQL, EF Core) - Coming Soon](#)
 
@@ -69,23 +69,11 @@ graph TD
 
 ---
 
-## 3. Project Screenshots
-
-*Below are placeholders for screenshots. You can generate or replace them in `/docs/screenshots/`:*
-
-| View | Screenshot Placeholder |
-| --- | --- |
-| **Login Dashboard** | ![Login View](/docs/screenshots/login_view.png) |
-| **Ticket Overview** | ![Ticket Overview](/docs/screenshots/tickets_overview.png) |
-| **Comments & Discussion** | ![Comments Thread](/docs/screenshots/comments_thread.png) |
-
----
-
-## 4. Technology Stack
+## 3. Technology Stack
 
 ### Backend
-- **Runtime**: Node.js (v18+)
-- **Framework**: Express (v5.0)
+- **Runtime**: Node.js
+- **Framework**: Express (v5.2)
 - **Language**: TypeScript (v6.0)
 - **ORM**: Prisma (v5.22)
 - **Security**: jsonwebtoken, bcryptjs
@@ -93,15 +81,15 @@ graph TD
 ### Frontend
 - **Framework**: Vue 3 (Composition API)
 - **Language**: TypeScript
-- **Bundler**: Vite (v8.0)
+- **Bundler**: Vite (v8.1)
 - **HTTP Client**: Axios
 
 ### Database
-- **Engine**: PostgreSQL (v15+)
+- **Engine**: PostgreSQL
 
 ---
 
-## 5. Folder Structure
+## 4. Folder Structure
 
 ```text
 ai-ticket-node-vue/
@@ -142,18 +130,18 @@ ai-ticket-node-vue/
 
 ---
 
-## 6. Installation & Onboarding
+## 5. Installation & Onboarding
 
 ### Prerequisites
 Make sure you have the following installed:
-- [Node.js](https://nodejs.org/) (v18.x or higher)
-- [PostgreSQL](https://www.postgresql.org/) (v15.x or higher)
+- [Node.js](https://nodejs.org/)
+- [PostgreSQL](https://www.postgresql.org/)
 
 ---
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/placeholder-username/ai-ticket-node-vue.git
+git clone https://github.com/engmohamed13/ai-ticket-node-vue.git
 cd ai-ticket-node-vue
 ```
 
@@ -219,11 +207,31 @@ The frontend application will boot and display the local network URL (typically 
 
 ---
 
-## 7. Demo Account Credentials
+## 6. Demo Account Credentials
 
 To login and test the application features, use the default seeded account:
 - **Email**: `admin@example.com`
 - **Password**: `Password123!`
+
+## 7. Running Automated Tests
+
+Both the backend and frontend modules have automated test suites.
+
+### Backend Tests (Jest + Supertest)
+The backend test suite covers authentication, ticket creation, parameter validation, search, and status transition rules.
+To run the backend tests:
+```bash
+cd backend
+npm test
+```
+
+### Frontend Tests (Vitest)
+The frontend test suite covers component mounting, search inputs, status transition buttons, and empty/error state layouts.
+To run the frontend tests:
+```bash
+cd frontend
+npm test
+```
 
 ---
 
@@ -250,7 +258,36 @@ This builds static artifacts into `/frontend/dist/` which can be served by any s
 
 ---
 
-## 9. AI-Assisted Development Workflow
+## 9. API Contract & Status Lifecycle
+
+The backend API exposes the following endpoints (all routes except login require a valid JWT token in the `Authorization: Bearer <token>` header):
+
+### Authentication
+* **POST `/auth/login`**: Logs in the default admin user and returns a JWT token.
+
+### Tickets Management
+* **GET `/tickets`**: Lists all tickets. Accepts an optional `?search=` query parameter to filter tickets by title or description (case-insensitive).
+* **POST `/tickets`**: Creates a new ticket. Validates that `priority` is one of `Low`, `Medium`, `High`.
+* **GET `/tickets/:id`**: Retrieves a single ticket by its ID.
+* **PUT `/tickets/:id`**: Updates ticket fields. Validates status transitions and priority/status values.
+* **DELETE `/tickets/:id`**: Deletes a ticket (cascade deletes all nested comments).
+* **PATCH `/tickets/:id/status`**: Updates only the status of a ticket.
+
+### Ticket Status Lifecycle Rules
+The system enforces a strict linear ticket lifecycle. Status values are limited to: `Open`, `In Progress`, and `Closed`.
+Allowed transitions:
+* **`Open` -> `In Progress`**: Allowed when beginning work on a ticket.
+* **`In Progress` -> `Closed`**: Allowed when resolving the ticket.
+
+Any other transitions (e.g. `Closed` -> `Open` or skipping straight from `Open` -> `Closed`) are rejected with **HTTP 400 Bad Request**.
+
+### Comments Management
+* **POST `/tickets/:id/comments`**: Adds a timestamped comment to a ticket.
+* **GET `/tickets/:id/comments`**: Retrieves all comments for a ticket.
+
+---
+
+## 10. AI-Assisted Development Workflow
 
 This project preserves the historical **`.claude/`** directory. It contains backlog task files (such as `task-001.md`, `task-002.md`, etc.) outlining the sequential, state-driven backlog implemented by the AI assistant during development. 
 
@@ -263,17 +300,24 @@ You can inspect the `.claude/` folder to trace the full development timeline of 
 
 ---
 
-## 10. Future Improvements (Roadmap)
+## 11. Week 4 Documentation
+
+The following documentation files track the implementation details, AI usage log, and requirement verification checklist for the Week 4 Tickets Mini Module:
+- [AI Usage Log](docs/ai-usage.md)
+- [Delivery Checklist](docs/delivery-checklist.md)
+
+---
+
+## 12. Future Improvements (Roadmap)
 
 To expand on this portfolio template, planned future extensions include:
 - **Multi-Role RBAC**: Implementing roles (Admin, Agent, Customer) with distinct UI layouts.
 - **File Uploads**: Attaching screenshots and files to tickets using S3 or local storage.
-- **Pagination & Search Filters**: Enhancing backend query performance and frontend table pagination.
+- **Pagination & Advanced Filtering**: Enhancing backend query performance and frontend table pagination.
 - **JWT Refresh Tokens**: Implementing cookie-stored session refresh flows.
-- **Unit and Integration Tests**: Adding Vitest for frontend components and Jest/Supertest for API endpoints.
 
 ---
 
-## 11. License
+## 13. License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

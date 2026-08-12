@@ -7,22 +7,38 @@ import type { Ticket } from '../types';
 
 const { t } = useI18n();
 const tickets = ref<Ticket[]>([]);
+const searchQuery = ref('');
 const loading = ref(true);
 const error = ref('');
 const router = useRouter();
 const route = useRoute();
 
+let searchTimeout: any = null;
+
 const fetchTickets = async () => {
   try {
     loading.value = true;
     error.value = '';
-    const response = await api.get('/tickets');
+    const params = searchQuery.value.trim() ? { search: searchQuery.value.trim() } : {};
+    const response = await api.get('/tickets', { params });
     tickets.value = response.data.data;
   } catch (err: any) {
     error.value = t('tickets.failedTickets');
   } finally {
     loading.value = false;
   }
+};
+
+const onSearchInput = () => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    fetchTickets();
+  }, 300);
+};
+
+const clearSearch = () => {
+  searchQuery.value = '';
+  fetchTickets();
 };
 
 const deleteTicket = async (id: number) => {
@@ -105,7 +121,24 @@ const getPriorityClass = (priority: string) => {
       <button @click="goToCreate" class="btn btn-primary">{{ t('tickets.createTicketBtn') }}</button>
     </div>
 
+    <!-- Search Section -->
+    <div class="search-section card">
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          id="search-input"
+          v-model="searchQuery"
+          @input="onSearchInput"
+          type="text"
+          :placeholder="t('tickets.searchPlaceholder')"
+          class="form-control search-input"
+        />
+        <button v-if="searchQuery" @click="clearSearch" type="button" class="btn-clear-search" title="Clear search">✖</button>
+      </div>
+    </div>
+
     <!-- Active Filter Indicator Banner -->
+
     <div class="filter-banner card">
       <div class="filter-info">
         <span class="filter-icon">🔍</span>
@@ -321,4 +354,62 @@ h1 {
   display: flex;
   gap: 0.4rem;
 }
+
+.search-section {
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #94a3b8;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+html[dir="rtl"] .search-icon {
+  left: auto;
+  right: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  height: 42px;
+}
+
+.btn-clear-search {
+  position: absolute;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html[dir="rtl"] .btn-clear-search {
+  right: auto;
+  left: 1rem;
+}
+
+.btn-clear-search:hover {
+  color: #475569;
+}
 </style>
+

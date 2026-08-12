@@ -1,6 +1,16 @@
 import { Request, Response } from 'express';
 import { ticketService } from '../services/ticket.service';
 
+const ALLOWED_PRIORITIES = ['Low', 'Medium', 'High'];
+const ALLOWED_STATUSES = ['Open', 'In Progress', 'Closed'];
+
+const isValidTransition = (oldStatus: string, newStatus: string): boolean => {
+  if (oldStatus === newStatus) return true;
+  if (oldStatus === 'Open' && newStatus === 'In Progress') return true;
+  if (oldStatus === 'In Progress' && newStatus === 'Closed') return true;
+  return false;
+};
+
 export class TicketController {
   async createTicket(req: Request, res: Response): Promise<void> {
     try {
@@ -9,6 +19,11 @@ export class TicketController {
 
       if (!title || !priority) {
         res.status(400).json({ success: false, message: 'Title and priority are required' });
+        return;
+      }
+
+      if (!ALLOWED_PRIORITIES.includes(priority)) {
+        res.status(400).json({ success: false, message: `Invalid priority. Must be one of: ${ALLOWED_PRIORITIES.join(', ')}` });
         return;
       }
 
@@ -27,7 +42,8 @@ export class TicketController {
 
   async getAllTickets(req: Request, res: Response): Promise<void> {
     try {
-      const tickets = await ticketService.getAllTickets();
+      const search = req.query.search as string | undefined;
+      const tickets = await ticketService.getAllTickets(search);
       res.status(200).json({ success: true, message: 'Tickets retrieved', data: tickets });
     } catch (error) {
       console.error(error);
@@ -71,9 +87,72 @@ export class TicketController {
       }
 
       const { title, description, priority, status } = req.body;
+
+      if (priority && !ALLOWED_PRIORITIES.includes(priority)) {
+        res.status(400).json({ success: false, message: `Invalid priority. Must be one of: ${ALLOWED_PRIORITIES.join(', ')}` });
+        return;
+      }
+
+      if (status) {
+        if (!ALLOWED_STATUSES.includes(status)) {
+          res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${ALLOWED_STATUSES.join(', ')}` });
+          return;
+        }
+
+        if (!isValidTransition(existingTicket.status, status)) {
+          res.status(400).json({
+            success: false,
+            message: `Invalid status transition from '${existingTicket.status}' to '${status}'. Only 'Open' -> 'In Progress' and 'In Progress' -> 'Closed' transitions are allowed.`
+          });
+          return;
+        }
+      }
+
       const updatedTicket = await ticketService.updateTicket(id, { title, description, priority, status });
       
       res.status(200).json({ success: true, message: 'Ticket updated', data: updatedTicket });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  }
+
+  async patchStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) {
+        res.status(400).json({ success: false, message: 'Invalid ticket ID' });
+        return;
+      }
+
+      const existingTicket = await ticketService.getTicketById(id);
+      if (!existingTicket) {
+        res.status(404).json({ success: false, message: 'Ticket not found' });
+        return;
+      }
+
+      const { status } = req.body;
+
+      if (!status) {
+        res.status(400).json({ success: false, message: 'Status is required' });
+        return;
+      }
+
+      if (!ALLOWED_STATUSES.includes(status)) {
+        res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${ALLOWED_STATUSES.join(', ')}` });
+        return;
+      }
+
+      if (!isValidTransition(existingTicket.status, status)) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid status transition from '${existingTicket.status}' to '${status}'. Only 'Open' -> 'In Progress' and 'In Progress' -> 'Closed' transitions are allowed.`
+        });
+        return;
+      }
+
+      const updatedTicket = await ticketService.updateTicketStatus(id, status);
+      res.status(200).json({ success: true, message: 'Ticket status updated', data: updatedTicket });
     } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, message: 'Internal server error' });
@@ -104,3 +183,4 @@ export class TicketController {
 }
 
 export const ticketController = new TicketController();
+

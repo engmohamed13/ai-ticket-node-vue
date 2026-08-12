@@ -12,6 +12,7 @@ router.post('/', ticketController.createTicket);
 router.get('/', ticketController.getAllTickets);
 router.get('/:id', ticketController.getTicketById);
 router.put('/:id', ticketController.updateTicket);
+router.patch('/:id/status', ticketController.patchStatus);
 router.delete('/:id', ticketController.deleteTicket);
 
 // Comment routes nested under tickets
