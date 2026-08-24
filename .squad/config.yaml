@@ -1,0 +1,22 @@
+version: 1
+project:
+  name: CustomerSupportCRM
+  primaryLanguage: typescript
+  projectRoots:
+    - .
+tracker:
+  type: azure
+  workspace: mohamedhagag191
+  project: AMZSQUADCRM
+naming:
+  includeTrackerId: true
+  globalSequence: true
+agents: []
+planner:
+  enabled: true
+  provider: anthropic
+  mode: auto
+  budget:
+    maxFileReads: 25
+    maxContextBytes: 50000
+    maxDurationSeconds: 180
