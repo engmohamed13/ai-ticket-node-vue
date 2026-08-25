@@ -1,19 +1,31 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
 
 const route = useRoute();
 const showShell = computed(() => route.meta.public !== true);
+
+// Mobile nav drawer state — purely presentational, lives here so the toggle
+// button in AppHeader and the drawer in AppSidebar share one source of truth.
+const navOpen = ref(false);
+watch(
+  () => route.fullPath,
+  () => {
+    navOpen.value = false;
+  }
+);
 </script>
 
 <template>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <div v-if="showShell" class="app-layout">
-    <AppHeader />
+    <AppHeader @toggle-nav="navOpen = !navOpen" />
     <div class="app-body">
-      <AppSidebar />
-      <main class="main-content">
+      <AppSidebar :open="navOpen" />
+      <div v-if="navOpen" class="nav-backdrop" @click="navOpen = false"></div>
+      <main id="main-content" class="main-content" tabindex="-1">
         <RouterView />
       </main>
     </div>
@@ -26,29 +38,44 @@ const showShell = computed(() => route.meta.public !== true);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f8fafc;
+  background-color: var(--surface-sunken);
 }
 
 .app-body {
   display: flex;
   flex: 1;
+  position: relative;
 }
 
 .main-content {
   flex: 1;
-  padding: 2rem;
-  max-width: 1280px;
+  min-width: 0;
+  padding: var(--space-6) var(--space-8);
+  max-width: 1360px;
   width: 100%;
+  margin: 0 auto;
   box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .app-body {
-    flex-direction: column;
+.main-content:focus-visible {
+  outline: none;
+}
+
+.nav-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: var(--space-4) var(--space-4) var(--space-8);
   }
 
-  .main-content {
-    padding: 1rem;
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: var(--header-height) 0 0 0;
+    background-color: rgba(15, 23, 42, 0.4);
+    z-index: 30;
   }
 }
 </style>

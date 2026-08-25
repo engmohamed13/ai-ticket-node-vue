@@ -2,6 +2,11 @@
 import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useUsersStore } from '../stores/users';
+import PageHeader from '../components/ui/PageHeader.vue';
+import AlertBanner from '../components/ui/AlertBanner.vue';
+import LoadingState from '../components/ui/LoadingState.vue';
+import EmptyState from '../components/ui/EmptyState.vue';
+import StatusBadge from '../components/ui/StatusBadge.vue';
 
 const store = useUsersStore();
 const auth = useAuthStore();
@@ -32,6 +37,7 @@ const selectedRoleKey = computed(
   () => store.roles.find((role) => role.id === Number(roleId.value))?.key
 );
 const requiresCustomer = computed(() => selectedRoleKey.value === 'CUSTOMER');
+const isEmpty = computed(() => !store.loading && store.users.length === 0);
 
 const onCreate = async (): Promise<void> => {
   if (name.value.trim().length === 0 || email.value.trim().length === 0 || password.value.length === 0) return;
@@ -69,96 +75,114 @@ const onDeactivate = async (userId: number): Promise<void> => {
 </script>
 
 <template>
-  <section>
-    <h2>Users</h2>
+  <section class="view">
+    <PageHeader title="Users" subtitle="The user directory, roles, and org assignments." />
 
-    <div v-if="store.error" class="panel panel-error" data-testid="users-error">{{ store.error }}</div>
-    <div v-if="store.notice" class="panel panel-notice" data-testid="users-notice">{{ store.notice }}</div>
-    <p v-if="store.loading" data-testid="users-loading">Loading users…</p>
+    <AlertBanner v-if="store.error" variant="error" data-testid="users-error">{{ store.error }}</AlertBanner>
+    <AlertBanner v-if="store.notice" variant="success" data-testid="users-notice">{{ store.notice }}</AlertBanner>
 
-    <form v-if="canManage" class="create-form" data-testid="create-user-form" @submit.prevent="onCreate">
-      <h3>Create user</h3>
-      <div class="form-row">
-        <label for="user-name">Name</label>
-        <input id="user-name" v-model="name" data-testid="user-name-input" type="text" required />
+    <div v-if="canManage" class="card">
+      <div class="card-header">
+        <h3 class="card-title">Create user</h3>
       </div>
-      <div class="form-row">
-        <label for="user-email">Email</label>
-        <input id="user-email" v-model="email" data-testid="user-email-input" type="email" required />
-      </div>
-      <div class="form-row">
-        <label for="user-password">Password</label>
-        <input id="user-password" v-model="password" data-testid="user-password-input" type="password" required />
-      </div>
-      <div class="form-row">
-        <label for="user-role">Role</label>
-        <select id="user-role" v-model="roleId" data-testid="user-role-select">
-          <option value="">Select a role…</option>
-          <option v-for="role in store.roles" :key="role.id" :value="role.id">{{ role.name }}</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="user-branch">Branch</label>
-        <select id="user-branch" v-model="branchId" data-testid="user-branch-select">
-          <option value="">No branch</option>
-          <option v-for="branch in store.branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="user-department">Department</label>
-        <select id="user-department" v-model="departmentId" data-testid="user-department-select">
-          <option value="">No department</option>
-          <option v-for="department in departmentsForBranch" :key="department.id" :value="department.id">
-            {{ department.name }}
-          </option>
-        </select>
-      </div>
-      <div v-if="requiresCustomer" class="form-row">
-        <label for="user-customer">Customer ID</label>
-        <input id="user-customer" v-model="customerId" data-testid="user-customer-input" type="number" />
-      </div>
-      <button class="btn btn-primary" type="submit" data-testid="create-user-submit">Create user</button>
-    </form>
-    <p v-else class="hint" data-testid="users-readonly-hint">You have read-only access to the user directory.</p>
+      <form class="card-padded" data-testid="create-user-form" @submit.prevent="onCreate">
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="user-name">Name</label>
+            <input id="user-name" v-model="name" data-testid="user-name-input" type="text" required />
+          </div>
+          <div class="form-field">
+            <label for="user-email">Email</label>
+            <input id="user-email" v-model="email" data-testid="user-email-input" type="email" required />
+          </div>
+          <div class="form-field">
+            <label for="user-password">Password</label>
+            <input id="user-password" v-model="password" data-testid="user-password-input" type="password" required />
+          </div>
+          <div class="form-field">
+            <label for="user-role">Role</label>
+            <select id="user-role" v-model="roleId" data-testid="user-role-select">
+              <option value="">Select a role…</option>
+              <option v-for="role in store.roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="user-branch">Branch</label>
+            <select id="user-branch" v-model="branchId" data-testid="user-branch-select">
+              <option value="">No branch</option>
+              <option v-for="branch in store.branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="user-department">Department</label>
+            <select id="user-department" v-model="departmentId" data-testid="user-department-select">
+              <option value="">No department</option>
+              <option v-for="department in departmentsForBranch" :key="department.id" :value="department.id">
+                {{ department.name }}
+              </option>
+            </select>
+          </div>
+          <div v-if="requiresCustomer" class="form-field">
+            <label for="user-customer">Customer ID</label>
+            <input id="user-customer" v-model="customerId" data-testid="user-customer-input" type="number" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit" data-testid="create-user-submit">Create user</button>
+        </div>
+      </form>
+    </div>
+    <AlertBanner v-else variant="info" data-testid="users-readonly-hint">You have read-only access to the user directory.</AlertBanner>
 
-    <div class="table-wrapper">
+    <LoadingState v-if="store.loading" data-testid="users-loading">Loading users…</LoadingState>
+
+    <EmptyState
+      v-else-if="isEmpty"
+      title="No users yet"
+      description="Users created by an administrator will show up here."
+    />
+
+    <div v-else class="table-wrapper">
       <table data-testid="users-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Branch</th>
-            <th>Department</th>
-            <th>Status</th>
-            <th v-if="canManage">Actions</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Role</th>
+            <th scope="col">Branch</th>
+            <th scope="col">Department</th>
+            <th scope="col">Status</th>
+            <th v-if="canManage" scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="user in store.users" :key="user.id" data-testid="user-row">
-            <td>{{ user.name }}</td>
+            <td class="cell-strong">{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.roleName }}</td>
             <td>{{ user.branch?.name ?? '—' }}</td>
             <td>{{ user.department?.name ?? '—' }}</td>
-            <td data-testid="user-status">{{ user.isActive ? 'Active' : 'Inactive' }}</td>
+            <td data-testid="user-status">
+              <StatusBadge :variant="user.isActive ? 'success' : 'neutral'">{{ user.isActive ? 'Active' : 'Inactive' }}</StatusBadge>
+            </td>
             <td v-if="canManage" class="actions-cell">
               <input
                 v-model="passwordDrafts[user.id]"
                 data-testid="reset-password-input"
                 type="password"
                 placeholder="New password"
+                aria-label="New password"
               />
               <button
-                class="btn btn-primary"
+                class="btn btn-secondary btn-sm"
                 type="button"
                 data-testid="reset-password-button"
                 @click="onResetPassword(user.id)"
               >
-                Reset password
+                Reset
               </button>
               <button
-                class="btn btn-primary"
+                class="btn btn-danger btn-sm"
                 type="button"
                 data-testid="deactivate-button"
                 :disabled="!user.isActive || user.id === auth.user?.id"
@@ -175,85 +199,19 @@ const onDeactivate = async (userId: number): Promise<void> => {
 </template>
 
 <style scoped>
-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.panel {
-  padding: 1rem 1.25rem;
-  border-radius: 8px;
-}
-
-.panel-error {
-  background-color: var(--color-down-bg);
-  color: var(--color-down);
-}
-
-.panel-notice {
-  background-color: var(--color-ok-bg);
-  color: var(--color-ok);
-}
-
-.hint {
-  color: var(--text-muted);
-}
-
-.create-form {
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.5rem;
-}
-
-.table-wrapper {
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.25rem;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th {
-  text-align: left;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-td {
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid var(--border-color);
+.cell-strong {
+  font-weight: 600;
 }
 
 .actions-cell {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .actions-cell input {
   padding: 0.4rem 0.6rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-family: inherit;
   width: 140px;
 }
 </style>

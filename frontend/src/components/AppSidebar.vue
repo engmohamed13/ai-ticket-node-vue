@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 
+withDefaults(defineProps<{ open?: boolean }>(), { open: false });
+
 const auth = useAuthStore();
 const router = useRouter();
 
@@ -13,11 +15,20 @@ const navItems = computed(() =>
     return !route.meta.permission || auth.can(route.meta.permission);
   })
 );
+
+/** Small set of route-name → icon paths, purely decorative (aria-hidden). */
+const ICONS: Record<string, string> = {
+  dashboard: 'M4 13h6V4H4v9zm0 7h6v-5H4v5zm10 0h6V11h-6v9zm0-16v5h6V4h-6z',
+  'system-health': 'M22 12h-4l-3 9-6-18-3 9H2',
+  communications: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
+  users: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
+  roles: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z'
+};
 </script>
 
 <template>
-  <aside class="app-sidebar">
-    <nav data-testid="sidebar-nav">
+  <aside class="app-sidebar" :class="{ 'is-open': open }">
+    <nav data-testid="sidebar-nav" aria-label="Primary">
       <RouterLink
         v-for="item in navItems"
         :key="item.name as string"
@@ -25,7 +36,18 @@ const navItems = computed(() =>
         class="nav-link"
         data-testid="sidebar-link"
       >
-        {{ item.meta.navLabel }}
+        <svg
+          v-if="ICONS[item.name as string]"
+          class="nav-icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path :d="ICONS[item.name as string]" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>{{ item.meta.navLabel }}</span>
       </RouterLink>
     </nav>
   </aside>
@@ -33,48 +55,73 @@ const navItems = computed(() =>
 
 <style scoped>
 .app-sidebar {
-  width: 220px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
-  background-color: #ffffff;
-  border-right: 1px solid #e2e8f0;
-  padding: 1.5rem 0;
+  background-color: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  padding: var(--space-4) var(--space-3);
 }
 
 nav {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.15rem;
 }
 
 .nav-link {
-  padding: 0.6rem 1.5rem;
-  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--slate-600);
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  border-right: 3px solid transparent;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.nav-icon {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  transition: color var(--transition-fast);
 }
 
 .nav-link:hover {
-  background-color: #f1f5f9;
+  background-color: var(--slate-100);
+  color: var(--text-main);
 }
 
 .nav-link.router-link-active {
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
   font-weight: 600;
-  border-right: 3px solid #2563eb;
+  border-right-color: var(--color-primary);
 }
 
-@media (max-width: 768px) {
+.nav-link.router-link-active .nav-icon {
+  color: var(--color-primary);
+}
+
+@media (max-width: 900px) {
   .app-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
+    position: fixed;
+    top: var(--header-height);
+    bottom: 0;
+    left: 0;
+    z-index: 35;
+    width: 260px;
+    box-shadow: var(--shadow-lg);
+    transform: translateX(-100%);
+    transition: transform var(--transition);
+    overflow-y: auto;
   }
 
-  nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 0 1rem;
+  .app-sidebar.is-open {
+    transform: translateX(0);
   }
 }
 </style>

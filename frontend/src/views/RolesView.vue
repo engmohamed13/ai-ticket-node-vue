@@ -3,6 +3,9 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useUsersStore } from '../stores/users';
 import type { Permission } from '../types';
+import PageHeader from '../components/ui/PageHeader.vue';
+import AlertBanner from '../components/ui/AlertBanner.vue';
+import LoadingState from '../components/ui/LoadingState.vue';
 
 const store = useUsersStore();
 const auth = useAuthStore();
@@ -40,123 +43,100 @@ const onSave = async (roleId: number): Promise<void> => {
 </script>
 
 <template>
-  <section>
-    <h2>Roles &amp; Permissions</h2>
+  <section class="view">
+    <PageHeader title="Roles &amp; Permissions" subtitle="Control what each role can see and do." />
 
-    <div v-if="store.error" class="panel panel-error" data-testid="roles-error">{{ store.error }}</div>
-    <div v-if="store.notice" class="panel panel-notice" data-testid="roles-notice">{{ store.notice }}</div>
-    <p v-if="store.loading" data-testid="roles-loading">Loading roles…</p>
+    <AlertBanner v-if="store.error" variant="error" data-testid="roles-error">{{ store.error }}</AlertBanner>
+    <AlertBanner v-if="store.notice" variant="success" data-testid="roles-notice">{{ store.notice }}</AlertBanner>
+    <LoadingState v-if="store.loading" data-testid="roles-loading">Loading roles…</LoadingState>
 
     <div class="role-cards">
-      <div v-for="role in store.roles" :key="role.id" class="role-card" data-testid="role-card">
-        <h3>{{ role.name }} <code>{{ role.key }}</code></h3>
-
-        <p v-if="role.key === 'SYSTEM_ADMINISTRATOR'" class="admin-warning" data-testid="admin-role-warning">
-          The System Administrator role must keep Users manage and Roles manage.
-        </p>
-
-        <div class="permission-list">
-          <label v-for="permission in store.permissions" :key="permission.id" class="permission-item">
-            <input
-              type="checkbox"
-              data-testid="permission-checkbox"
-              :value="permission.key"
-              :checked="isChecked(role.id, permission.key)"
-              :disabled="!canManage"
-              @change="toggle(role.id, permission.key)"
-            />
-            {{ permission.description }}
-          </label>
+      <div v-for="role in store.roles" :key="role.id" class="card role-card" data-testid="role-card">
+        <div class="card-header role-card-header">
+          <div>
+            <h3 class="card-title">{{ role.name }}</h3>
+            <code>{{ role.key }}</code>
+          </div>
+          <button
+            v-if="canManage"
+            class="btn btn-primary btn-sm"
+            type="button"
+            data-testid="save-role-button"
+            @click="onSave(role.id)"
+          >
+            Save
+          </button>
         </div>
 
-        <button
-          v-if="canManage"
-          class="btn btn-primary"
-          type="button"
-          data-testid="save-role-button"
-          @click="onSave(role.id)"
-        >
-          Save
-        </button>
+        <div class="card-padded role-card-body">
+          <AlertBanner v-if="role.key === 'SYSTEM_ADMINISTRATOR'" variant="warning" data-testid="admin-role-warning">
+            The System Administrator role must keep Users manage and Roles manage.
+          </AlertBanner>
+
+          <div class="permission-list">
+            <label v-for="permission in store.permissions" :key="permission.id" class="permission-item">
+              <input
+                type="checkbox"
+                data-testid="permission-checkbox"
+                :value="permission.key"
+                :checked="isChecked(role.id, permission.key)"
+                :disabled="!canManage"
+                @change="toggle(role.id, permission.key)"
+              />
+              {{ permission.description }}
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.panel {
-  padding: 1rem 1.25rem;
-  border-radius: 8px;
-}
-
-.panel-error {
-  background-color: var(--color-down-bg);
-  color: var(--color-down);
-}
-
-.panel-notice {
-  background-color: var(--color-ok-bg);
-  color: var(--color-ok);
-}
-
 .role-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
 }
 
-.role-card {
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.role-card-header {
+  gap: var(--space-3);
 }
 
-.role-card h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-}
-
-.role-card code {
-  font-size: 0.75rem;
+.role-card-header code {
+  font-size: var(--font-xs);
   color: var(--text-muted);
   font-weight: 400;
+  background: none;
+  padding: 0;
 }
 
-.admin-warning {
-  background-color: var(--color-degraded-bg, #fef3c7);
-  color: var(--color-degraded, #92400e);
-  padding: 0.6rem 0.9rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  margin: 0;
+.role-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .permission-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.6rem 1rem;
 }
 
 .permission-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
+  font-weight: 400;
+  color: var(--text-main);
+  cursor: pointer;
 }
 
-.role-card button {
-  align-self: flex-start;
+.permission-item input {
+  width: auto;
+  margin-top: 0.15rem;
+  accent-color: var(--color-primary);
 }
 </style>
