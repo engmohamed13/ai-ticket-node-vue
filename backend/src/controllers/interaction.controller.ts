@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { assertCustomerScope } from '../auth/scope';
+import { getAuth } from '../middleware/auth.middleware';
 import {
   associateInteractionWithTicket,
   createInteraction,
@@ -7,6 +9,7 @@ import {
 import { ok } from '../utils/apiResponse';
 
 export const createInteractionHandler = async (req: Request, res: Response): Promise<void> => {
+  assertCustomerScope(getAuth(req), req.body.customerId);
   const interaction = await createInteraction(req.body);
   res.status(201).json(ok(interaction, 'Interaction stored'));
 };
@@ -14,6 +17,7 @@ export const createInteractionHandler = async (req: Request, res: Response): Pro
 export const getInteractionHandler = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params as unknown as { id: number };
   const interaction = await getInteractionById(id);
+  assertCustomerScope(getAuth(req), interaction.customerId);
   res.json(ok(interaction));
 };
 

@@ -8,6 +8,7 @@ jest.mock('../db/prisma', () => ({
 import request from 'supertest';
 import { prisma } from '../db/prisma';
 import app from '../app';
+import { bearer } from './authTestHelper';
 
 const mockedTicketFindMany = prisma.ticket.findMany as jest.Mock;
 const mockedTicketFindUnique = prisma.ticket.findUnique as jest.Mock;
@@ -18,7 +19,7 @@ describe('GET /api/tickets', () => {
     const mockTickets = [{ id: 1, subject: 'Test', status: 'Open', customerId: 1, createdAt: new Date(), updatedAt: new Date() }];
     mockedTicketFindMany.mockResolvedValue(mockTickets);
 
-    const res = await request(app).get('/api/tickets');
+    const res = await request(app).get('/api/tickets').set('Authorization', bearer());
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -30,7 +31,7 @@ describe('GET /api/tickets', () => {
     const tickets = [{ id: 1, subject: 'Test', status: 'Open', customerId: 1, createdAt: new Date(), updatedAt: new Date() }];
     mockedTicketFindMany.mockResolvedValue(tickets);
 
-    const res = await request(app).get('/api/tickets?customerId=1');
+    const res = await request(app).get('/api/tickets?customerId=1').set('Authorization', bearer());
 
     expect(res.status).toBe(200);
     expect(mockedTicketFindMany).toHaveBeenCalledWith({ where: { customerId: 1 }, orderBy: { createdAt: 'desc' } });
@@ -42,7 +43,7 @@ describe('GET /api/tickets/:id', () => {
     const mockTicket = { id: 1, subject: 'Test', status: 'Open', customerId: 1, createdAt: new Date(), updatedAt: new Date() };
     mockedTicketFindUnique.mockResolvedValue(mockTicket);
 
-    const res = await request(app).get('/api/tickets/1');
+    const res = await request(app).get('/api/tickets/1').set('Authorization', bearer());
 
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({ id: 1, subject: 'Test', status: 'Open', customerId: 1 });
@@ -51,7 +52,7 @@ describe('GET /api/tickets/:id', () => {
   it('returns 404 when ticket not found', async () => {
     mockedTicketFindUnique.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/tickets/999');
+    const res = await request(app).get('/api/tickets/999').set('Authorization', bearer());
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
@@ -67,7 +68,7 @@ describe('GET /api/tickets/:id/timeline', () => {
     mockedTicketFindUnique.mockResolvedValue(mockTicket);
     mockedInteractionFindMany.mockResolvedValue(mockInteractions);
 
-    const res = await request(app).get('/api/tickets/1/timeline');
+    const res = await request(app).get('/api/tickets/1/timeline').set('Authorization', bearer());
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -78,7 +79,7 @@ describe('GET /api/tickets/:id/timeline', () => {
   it('returns 404 when ticket not found', async () => {
     mockedTicketFindUnique.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/tickets/999/timeline');
+    const res = await request(app).get('/api/tickets/999/timeline').set('Authorization', bearer());
 
     expect(res.status).toBe(404);
   });

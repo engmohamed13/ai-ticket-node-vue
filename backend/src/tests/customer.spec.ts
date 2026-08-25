@@ -8,6 +8,7 @@ jest.mock('../db/prisma', () => ({
 import request from 'supertest';
 import { prisma } from '../db/prisma';
 import app from '../app';
+import { bearer } from './authTestHelper';
 
 const mockedFindMany = prisma.customer.findMany as jest.Mock;
 const mockedFindUnique = prisma.customer.findUnique as jest.Mock;
@@ -18,7 +19,7 @@ describe('GET /api/customers', () => {
     const mockData = [{ id: 1, name: 'John', email: 'john@example.com', phone: null, createdAt: new Date() }];
     mockedFindMany.mockResolvedValue(mockData);
 
-    const res = await request(app).get('/api/customers');
+    const res = await request(app).get('/api/customers').set('Authorization', bearer());
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -36,7 +37,7 @@ describe('GET /api/customers/:id/timeline', () => {
     mockedFindUnique.mockResolvedValue(customer);
     mockedInteractionFindMany.mockResolvedValue(mockInteractions);
 
-    const res = await request(app).get('/api/customers/1/timeline');
+    const res = await request(app).get('/api/customers/1/timeline').set('Authorization', bearer());
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -48,7 +49,7 @@ describe('GET /api/customers/:id/timeline', () => {
   it('returns 404 when customer does not exist', async () => {
     mockedFindUnique.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/customers/999/timeline');
+    const res = await request(app).get('/api/customers/999/timeline').set('Authorization', bearer());
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);

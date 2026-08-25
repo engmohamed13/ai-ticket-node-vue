@@ -6,6 +6,7 @@ import {
   createInteractionHandler,
   getInteractionHandler
 } from '../controllers/interaction.controller';
+import { requirePermission } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { idParamSchema } from '../schemas/idParam.schema';
 
@@ -24,10 +25,11 @@ const associateInteractionSchema = z.object({ ticketId: z.coerce.number().int().
 
 const router = Router();
 
-router.post('/', validate({ body: createInteractionSchema }), createInteractionHandler);
-router.get('/:id', validate({ params: idParamSchema }), getInteractionHandler);
+router.post('/', requirePermission('interactions:create'), validate({ body: createInteractionSchema }), createInteractionHandler);
+router.get('/:id', requirePermission('interactions:read'), validate({ params: idParamSchema }), getInteractionHandler);
 router.patch(
   '/:id/associate',
+  requirePermission('interactions:associate'),
   validate({ params: idParamSchema, body: associateInteractionSchema }),
   associateInteractionHandler
 );

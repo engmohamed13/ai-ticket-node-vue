@@ -86,10 +86,10 @@ describe('GET /api/health/db', () => {
 });
 
 describe('GET /api/unknown', () => {
-  it('returns 404 in the error envelope', async () => {
+  it('returns 401 when no token provided', async () => {
     const res = await request(app).get('/api/unknown');
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
   });
 });

@@ -13,7 +13,11 @@ const envSchema = z.object({
     .min(1, 'DATABASE_URL is required, e.g. postgresql://user:pass@localhost:5432/CustomerCRM?schema=public')
     .refine((value) => value.startsWith('postgresql://') || value.startsWith('postgres://'), {
       message: 'DATABASE_URL must be a PostgreSQL connection string'
-    })
+    }),
+  JWT_SECRET: z
+    .string()
+    .min(32, 'JWT_SECRET must be at least 32 characters — generate one with `openssl rand -base64 48`'),
+  JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(28800)
 });
 
 export type Env = z.infer<typeof envSchema>;

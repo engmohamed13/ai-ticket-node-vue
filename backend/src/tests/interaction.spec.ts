@@ -14,6 +14,7 @@ import request from 'supertest';
 import { getChannelAdapter } from '../channels/registry';
 import { prisma } from '../db/prisma';
 import app from '../app';
+import { bearer } from './authTestHelper';
 
 const mockedGetChannelAdapter = getChannelAdapter as jest.Mock;
 const mockedCustomerFindUnique = prisma.customer.findUnique as jest.Mock;
@@ -53,6 +54,7 @@ describe('POST /api/interactions', () => {
 
     const res = await request(app)
       .post('/api/interactions')
+      .set('Authorization', bearer())
       .send({
         channel: 'EMAIL',
         direction: 'INBOUND',
@@ -96,6 +98,7 @@ describe('POST /api/interactions', () => {
 
     const res = await request(app)
       .post('/api/interactions')
+      .set('Authorization', bearer())
       .send({
         channel: 'EMAIL',
         direction: 'OUTBOUND',
@@ -112,6 +115,7 @@ describe('POST /api/interactions', () => {
 
     const res = await request(app)
       .post('/api/interactions')
+      .set('Authorization', bearer())
       .send({
         channel: 'EMAIL',
         direction: 'INBOUND',
@@ -128,6 +132,7 @@ describe('POST /api/interactions', () => {
 
     const res = await request(app)
       .post('/api/interactions')
+      .set('Authorization', bearer())
       .send({
         channel: 'EMAIL',
         direction: 'INBOUND',
@@ -142,6 +147,7 @@ describe('POST /api/interactions', () => {
   it('returns 400 when body is empty', async () => {
     const res = await request(app)
       .post('/api/interactions')
+      .set('Authorization', bearer())
       .send({
         channel: 'EMAIL',
         direction: 'INBOUND',
@@ -155,6 +161,7 @@ describe('POST /api/interactions', () => {
   it('returns 400 when channel is invalid', async () => {
     const res = await request(app)
       .post('/api/interactions')
+      .set('Authorization', bearer())
       .send({
         channel: 'INVALID',
         direction: 'INBOUND',
@@ -182,7 +189,7 @@ describe('GET /api/interactions/:id', () => {
     };
     mockedInteractionFindUnique.mockResolvedValue(mockInteraction);
 
-    const res = await request(app).get('/api/interactions/1');
+    const res = await request(app).get('/api/interactions/1').set('Authorization', bearer());
 
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({ id: 1, channel: 'EMAIL', direction: 'INBOUND', customerId: 1 });
@@ -191,7 +198,7 @@ describe('GET /api/interactions/:id', () => {
   it('returns 404 when interaction not found', async () => {
     mockedInteractionFindUnique.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/interactions/999');
+    const res = await request(app).get('/api/interactions/999').set('Authorization', bearer());
 
     expect(res.status).toBe(404);
   });
@@ -218,6 +225,7 @@ describe('PATCH /api/interactions/:id/associate', () => {
 
     const res = await request(app)
       .patch('/api/interactions/1/associate')
+      .set('Authorization', bearer())
       .send({ ticketId: 1 });
 
     expect(res.status).toBe(200);
@@ -242,6 +250,7 @@ describe('PATCH /api/interactions/:id/associate', () => {
 
     const res = await request(app)
       .patch('/api/interactions/1/associate')
+      .set('Authorization', bearer())
       .send({ ticketId: 1 });
 
     expect(res.status).toBe(400);
@@ -252,6 +261,7 @@ describe('PATCH /api/interactions/:id/associate', () => {
 
     const res = await request(app)
       .patch('/api/interactions/999/associate')
+      .set('Authorization', bearer())
       .send({ ticketId: 1 });
 
     expect(res.status).toBe(404);

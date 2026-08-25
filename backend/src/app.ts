@@ -20,12 +20,12 @@ export const createApp = (): Express => {
     res.json(ok(null, 'CustomerSupportCRM API'));
   });
 
-  app.use(API_PREFIX, routes);
-
   app.use(`${API_PREFIX}/docs`, swaggerUi.serve, swaggerUi.setup(openApiDocument));
   app.get(`${API_PREFIX}/docs.json`, (_req, res) => {
     res.json(openApiDocument);
   });
+
+  app.use(API_PREFIX, routes);
 
   app.use(notFoundMiddleware);
   app.use(globalErrorHandler);
