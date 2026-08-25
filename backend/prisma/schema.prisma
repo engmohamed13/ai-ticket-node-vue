@@ -20,3 +20,160 @@ model SystemInfo {
 
   @@map("system_info")
 }
+
+/// Minimal customer record — scoped to what interactions need (name, email, phone).
+/// Full customer profile management is out of scope for this feature.
+model Customer {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  phone        String?
+  createdAt    DateTime      @default(now())
+
+  tickets      Ticket[]
+  interactions Interaction[]
+  users        User[]
+
+  @@map("customers")
+}
+
+/// Minimal ticket record — scoped to what interactions need to associate against.
+/// Ticket workflow (priority, assignee, comments) is out of scope for this feature.
+model Ticket {
+  id           Int           @id @default(autoincrement())
+  subject      String
+  status       String        @default("Open")
+  customerId   Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  interactions Interaction[]
+
+  @@map("tickets")
+}
+
+/// A single customer interaction on one of the supported communication channels.
+/// `channel` and `direction` are plain strings validated by the API layer against
+/// the CHANNELS / INTERACTION_DIRECTIONS constants in `src/channels/types.ts`,
+/// following the same convention as Ticket.status above rather than a Prisma enum.
+model Interaction {
+  id          Int      @id @default(autoincrement())
+  channel     String
+  direction   String
+  subject     String?
+  body        String
+  externalRef String
+  customerId  Int
+  ticketId    Int?
+  occurredAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  customer    Customer @relation(fields: [customerId], references: [id])
+  ticket      Ticket?  @relation(fields: [ticketId], references: [id])
+
+  @@index([customerId])
+  @@index([ticketId])
+  @@map("interactions")
+}
+
+/// A physical office. Users are assigned to a branch so an administrator can see the
+/// organisational structure required by work item 3 ("Departments and branches").
+model Branch {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  code        String       @unique
+  createdAt   DateTime     @default(now())
+
+  departments Department[]
+  users       User[]
+
+  @@map("branches")
+}
+
+/// A department inside a branch. Department names repeat across branches
+/// (every branch has a "Customer Support"), so the unique key is the pair.
+model Department {
+  id        Int      @id @default(autoincrement())
+  name      String
+  branchId  Int
+  createdAt DateTime @default(now())
+
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  users     User[]
+
+  @@unique([branchId, name])
+  @@index([branchId])
+  @@map("departments")
+}
+
+/// A single capability. `key` matches a value in the PERMISSIONS tuple in
+/// `src/auth/permissions.ts` — a plain String, validated in application code, following
+/// the same convention as Ticket.status and Interaction.channel above.
+model Permission {
+  id          Int              @id @default(autoincrement())
+  key         String           @unique
+  description String
+  createdAt   DateTime         @default(now())
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+/// One of the six main roles from work item 3. `key` matches a value in the ROLES tuple
+/// in `src/auth/roles.ts`; `name` is the display label shown in the UI.
+model Role {
+  id          Int              @id @default(autoincrement())
+  key         String           @unique
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+
+  permissions RolePermission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+/// Explicit many-to-many join so an administrator can grant and revoke a single
+/// permission on a role (Story 08's PUT /api/roles/:id/permissions).
+model RolePermission {
+  roleId       Int
+  permissionId Int
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+/// A CRM login. Exactly one role per user (the work item lists six mutually exclusive
+/// "Main Roles", not a role set). `customerId` is set only for CUSTOMER-role users and
+/// is what scopes a customer to their own records in the API layer.
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String
+  email        String     @unique
+  passwordHash String
+  isActive     Boolean    @default(true)
+  roleId       Int
+  departmentId Int?
+  branchId     Int?
+  customerId   Int?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  role         Role        @relation(fields: [roleId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+  branch       Branch?     @relation(fields: [branchId], references: [id])
+  customer     Customer?   @relation(fields: [customerId], references: [id])
+
+  @@index([roleId])
+  @@index([departmentId])
+  @@index([branchId])
+  @@index([customerId])
+  @@map("users")
+}

@@ -1,4 +1,13 @@
-import { prisma } from '../src/db/prisma';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../src/generated/prisma/client';
+import { channelAdapters } from '../src/channels/registry';
+import { PERMISSIONS, PERMISSION_DESCRIPTIONS } from '../src/auth/permissions';
+import { hashPassword } from '../src/auth/password';
+import { ROLES, ROLE_LABELS, ROLE_PERMISSIONS } from '../src/auth/roles';
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+});
 
 const main = async (): Promise<void> => {
   await prisma.systemInfo.upsert({
@@ -11,7 +20,184 @@ const main = async (): Promise<void> => {
     update: { value: 'CustomerSupportCRM' },
     create: { key: 'appName', value: 'CustomerSupportCRM' }
   });
-  console.log('Seed complete: system_info');
+
+  const customer = await prisma.customer.upsert({
+    where: { email: 'demo.customer@example.com' },
+    update: {},
+    create: { name: 'Demo Customer', email: 'demo.customer@example.com', phone: '+1-555-0100' }
+  });
+
+  let ticket = await prisma.ticket.findFirst({
+    where: { customerId: customer.id, subject: 'Cannot log in to my account' }
+  });
+  if (!ticket) {
+    ticket = await prisma.ticket.create({
+      data: { subject: 'Cannot log in to my account', status: 'Open', customerId: customer.id }
+    });
+  }
+
+  for (const adapter of Object.values(channelAdapters)) {
+    const existingInteraction = await prisma.interaction.findFirst({
+      where: { customerId: customer.id, channel: adapter.channel }
+    });
+    if (existingInteraction) continue;
+
+    const message = adapter.simulateInbound({
+      subject: 'Login issue',
+      body: `Demo ${adapter.channel} message: I cannot log in to my account.`
+    });
+    await prisma.interaction.create({
+      data: { ...message, customerId: customer.id, ticketId: ticket.id }
+    });
+  }
+
+  // --- Branches ---
+  const headOffice = await prisma.branch.upsert({
+    where: { code: 'HQ' },
+    update: {},
+    create: { name: 'Head Office', code: 'HQ' }
+  });
+  const riyadhBranch = await prisma.branch.upsert({
+    where: { code: 'RUH' },
+    update: {},
+    create: { name: 'Riyadh Branch', code: 'RUH' }
+  });
+
+  // --- Departments (unique per branch + name) ---
+  const crmOperations = await prisma.department.upsert({
+    where: { branchId_name: { branchId: headOffice.id, name: 'CRM Operations' } },
+    update: {},
+    create: { name: 'CRM Operations', branchId: headOffice.id }
+  });
+  const headOfficeSupport = await prisma.department.upsert({
+    where: { branchId_name: { branchId: headOffice.id, name: 'Customer Support' } },
+    update: {},
+    create: { name: 'Customer Support', branchId: headOffice.id }
+  });
+  const riyadhSupport = await prisma.department.upsert({
+    where: { branchId_name: { branchId: riyadhBranch.id, name: 'Customer Support' } },
+    update: {},
+    create: { name: 'Customer Support', branchId: riyadhBranch.id }
+  });
+
+  // --- Permissions ---
+  for (const key of PERMISSIONS) {
+    await prisma.permission.upsert({
+      where: { key },
+      update: { description: PERMISSION_DESCRIPTIONS[key] },
+      create: { key, description: PERMISSION_DESCRIPTIONS[key] }
+    });
+  }
+
+  // --- Roles and their permissions. ROLE_PERMISSIONS is authoritative: reseeding
+  // --- resets any role-permission edits made through the API.
+  const roleIdByKey = new Map<string, number>();
+  for (const roleKey of ROLES) {
+    const role = await prisma.role.upsert({
+      where: { key: roleKey },
+      update: { name: ROLE_LABELS[roleKey] },
+      create: { key: roleKey, name: ROLE_LABELS[roleKey] }
+    });
+    roleIdByKey.set(roleKey, role.id);
+
+    const permissions = await prisma.permission.findMany({
+      where: { key: { in: [...ROLE_PERMISSIONS[roleKey]] } }
+    });
+    await prisma.rolePermission.deleteMany({ where: { roleId: role.id } });
+    await prisma.rolePermission.createMany({
+      data: permissions.map((permission) => ({ roleId: role.id, permissionId: permission.id }))
+    });
+  }
+
+  // --- Demo users: one per role, all sharing the same demo password.
+  // --- DEMO ONLY. Never ship this password or this seed to a production database.
+  const DEMO_PASSWORD = 'Passw0rd!';
+  const demoPasswordHash = await hashPassword(DEMO_PASSWORD);
+
+  const demoUsers = [
+    {
+      name: 'System Administrator',
+      email: 'admin@crm.local',
+      roleKey: 'SYSTEM_ADMINISTRATOR',
+      branchId: headOffice.id,
+      departmentId: crmOperations.id,
+      customerId: null
+    },
+    {
+      name: 'CRM Manager',
+      email: 'manager@crm.local',
+      roleKey: 'CRM_MANAGER',
+      branchId: headOffice.id,
+      departmentId: crmOperations.id,
+      customerId: null
+    },
+    {
+      name: 'Support Supervisor',
+      email: 'supervisor@crm.local',
+      roleKey: 'SUPPORT_SUPERVISOR',
+      branchId: headOffice.id,
+      departmentId: headOfficeSupport.id,
+      customerId: null
+    },
+    {
+      name: 'Support Agent',
+      email: 'agent@crm.local',
+      roleKey: 'SUPPORT_AGENT',
+      branchId: riyadhBranch.id,
+      departmentId: riyadhSupport.id,
+      customerId: null
+    },
+    {
+      name: 'Reporting User',
+      email: 'reports@crm.local',
+      roleKey: 'REPORTING_USER',
+      branchId: headOffice.id,
+      departmentId: crmOperations.id,
+      customerId: null
+    },
+    {
+      name: 'Demo Customer',
+      email: 'demo.customer@example.com',
+      roleKey: 'CUSTOMER',
+      branchId: null,
+      departmentId: null,
+      customerId: customer.id
+    }
+  ] as const;
+
+  for (const demoUser of demoUsers) {
+    const roleId = roleIdByKey.get(demoUser.roleKey);
+    if (roleId === undefined) throw new Error(`Seed error: role ${demoUser.roleKey} was not created`);
+
+    await prisma.user.upsert({
+      where: { email: demoUser.email },
+      // passwordHash is deliberately absent from `update` so a password changed
+      // through the API survives a reseed.
+      update: {
+        name: demoUser.name,
+        roleId,
+        branchId: demoUser.branchId,
+        departmentId: demoUser.departmentId,
+        customerId: demoUser.customerId,
+        isActive: true
+      },
+      create: {
+        name: demoUser.name,
+        email: demoUser.email,
+        passwordHash: demoPasswordHash,
+        roleId,
+        branchId: demoUser.branchId,
+        departmentId: demoUser.departmentId,
+        customerId: demoUser.customerId
+      }
+    });
+  }
+
+  console.log(
+    'Seed complete: system_info, 1 customer, 1 ticket, 5 interactions (one per channel), ' +
+      `2 branches, 3 departments, ${PERMISSIONS.length} permissions, ${ROLES.length} roles, ` +
+      `${demoUsers.length} demo users (password: ${DEMO_PASSWORD})`
+  );
 };
 
 main()

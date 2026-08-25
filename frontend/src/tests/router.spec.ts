@@ -10,6 +10,10 @@ describe('router', () => {
     expect(router.resolve('/health').name).toBe('system-health');
   });
 
+  it('resolves /communications to the communications route', () => {
+    expect(router.resolve('/communications').name).toBe('communications');
+  });
+
   it('resolves an unknown path to the not-found route', () => {
     expect(router.resolve('/no/such/path').name).toBe('not-found');
   });

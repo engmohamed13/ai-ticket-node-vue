@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000/api/health/db)",
+      "Bash(pkill -f \"tsx watch src/server.ts\")",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs -r kill)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(git ls-tree *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

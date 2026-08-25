@@ -6,6 +6,7 @@
     <nav>
       <RouterLink :to="{ name: 'dashboard' }" class="nav-link">Dashboard</RouterLink>
       <RouterLink :to="{ name: 'system-health' }" class="nav-link">System Health</RouterLink>
+      <RouterLink :to="{ name: 'communications' }" class="nav-link">Communications</RouterLink>
     </nav>
   </aside>
 </template>
