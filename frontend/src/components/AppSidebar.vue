@@ -1,12 +1,32 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+
+const auth = useAuthStore();
+const router = useRouter();
+
+/** Every route that declares a `navLabel`, minus the ones this user cannot enter. */
+const navItems = computed(() =>
+  router.getRoutes().filter((route) => {
+    if (!route.meta.navLabel) return false;
+    return !route.meta.permission || auth.can(route.meta.permission);
+  })
+);
 </script>
 
 <template>
   <aside class="app-sidebar">
-    <nav>
-      <RouterLink :to="{ name: 'dashboard' }" class="nav-link">Dashboard</RouterLink>
-      <RouterLink :to="{ name: 'system-health' }" class="nav-link">System Health</RouterLink>
-      <RouterLink :to="{ name: 'communications' }" class="nav-link">Communications</RouterLink>
+    <nav data-testid="sidebar-nav">
+      <RouterLink
+        v-for="item in navItems"
+        :key="item.name as string"
+        :to="{ name: item.name }"
+        class="nav-link"
+        data-testid="sidebar-link"
+      >
+        {{ item.meta.navLabel }}
+      </RouterLink>
     </nav>
   </aside>
 </template>

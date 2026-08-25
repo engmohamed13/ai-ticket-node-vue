@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
+import { computed } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
 import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
+
+const route = useRoute();
+const showShell = computed(() => route.meta.public !== true);
 </script>
 
 <template>
-  <div class="app-layout">
+  <div v-if="showShell" class="app-layout">
     <AppHeader />
     <div class="app-body">
       <AppSidebar />
@@ -14,6 +18,7 @@ import AppSidebar from './components/AppSidebar.vue';
       </main>
     </div>
   </div>
+  <RouterView v-else />
 </template>
 
 <style scoped>

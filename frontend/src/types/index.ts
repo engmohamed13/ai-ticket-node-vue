@@ -68,3 +68,91 @@ export interface CreateInteractionPayload {
   subject?: string;
   body: string;
 }
+
+export const PERMISSIONS = [
+  'users:read',
+  'users:manage',
+  'roles:read',
+  'roles:manage',
+  'orgunits:read',
+  'orgunits:manage',
+  'customers:read',
+  'tickets:read',
+  'tickets:manage',
+  'interactions:read',
+  'interactions:create',
+  'interactions:associate',
+  'reports:read'
+] as const;
+export type Permission = (typeof PERMISSIONS)[number];
+
+export const ROLES = [
+  'SYSTEM_ADMINISTRATOR',
+  'CRM_MANAGER',
+  'SUPPORT_SUPERVISOR',
+  'SUPPORT_AGENT',
+  'CUSTOMER',
+  'REPORTING_USER'
+] as const;
+export type RoleKey = (typeof ROLES)[number];
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  isActive: boolean;
+  roleKey: RoleKey;
+  roleName: string;
+  permissions: Permission[];
+  customerId: number | null;
+  department: { id: number; name: string } | null;
+  branch: { id: number; name: string; code: string } | null;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface LoginResult {
+  token: string;
+  user: AuthUser;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  password: string;
+  roleId: number;
+  departmentId?: number;
+  branchId?: number;
+  customerId?: number;
+}
+
+export interface Role {
+  id: number;
+  key: RoleKey;
+  name: string;
+  description: string | null;
+  permissions: Permission[];
+}
+
+export interface PermissionRecord {
+  id: number;
+  key: Permission;
+  description: string;
+}
+
+export interface Branch {
+  id: number;
+  name: string;
+  code: string;
+  createdAt: string;
+}
+
+export interface Department {
+  id: number;
+  name: string;
+  branchId: number;
+  createdAt: string;
+}

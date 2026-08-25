@@ -17,4 +17,20 @@ describe('router', () => {
   it('resolves an unknown path to the not-found route', () => {
     expect(router.resolve('/no/such/path').name).toBe('not-found');
   });
+
+  it('resolves /login to the login route', () => {
+    expect(router.resolve('/login').name).toBe('login');
+  });
+
+  it('resolves /users to the users route', () => {
+    expect(router.resolve('/users').name).toBe('users');
+  });
+
+  it('resolves /roles to the roles route', () => {
+    expect(router.resolve('/roles').name).toBe('roles');
+  });
+
+  it('resolves /forbidden to the forbidden route', () => {
+    expect(router.resolve('/forbidden').name).toBe('forbidden');
+  });
 });
