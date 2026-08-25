@@ -3,3 +3,22 @@
 .squad/stories/**/attachments/
 .squad/.trash/
 # End squad-kit block
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editors / OS
+.DS_Store
+Thumbs.db
