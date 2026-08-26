@@ -8,3 +8,4 @@ One row per feature folder under `.squad/plans/`. `NN` continues as a global exe
 | communicationchannels | [communicationchannels/00-overview.md](communicationchannels/00-overview.md) | 04–06 |
 | authenticationandusermanagement | [authenticationandusermanagement/00-overview.md](authenticationandusermanagement/00-overview.md) | 07–09 |
 | customermanagement | [customermanagement/00-overview.md](customermanagement/00-overview.md) | 10–12 |
+| ticketmanagementagentworkflow | [ticketmanagementagentworkflow/00-overview.md](ticketmanagementagentworkflow/00-overview.md) | 13–15 |

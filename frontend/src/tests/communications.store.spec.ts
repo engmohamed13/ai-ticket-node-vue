@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { useCommunicationsStore } from '../stores/communications';
 import { fetchCustomers, fetchTickets, fetchCustomerTimeline, createInteraction, associateInteraction } from '../services/communications.service';
+import type { Ticket } from '../types';
 
 vi.mock('../services/communications.service', () => ({
   fetchCustomers: vi.fn(),
@@ -16,6 +17,26 @@ const mockedFetchTickets = fetchTickets as unknown as ReturnType<typeof vi.fn>;
 const mockedFetchCustomerTimeline = fetchCustomerTimeline as unknown as ReturnType<typeof vi.fn>;
 const mockedCreateInteraction = createInteraction as unknown as ReturnType<typeof vi.fn>;
 const mockedAssociateInteraction = associateInteraction as unknown as ReturnType<typeof vi.fn>;
+
+/** Ticket grew workflow/SLA fields in Story 13; this keeps the inline fixtures complete. */
+const ticketFixture = (overrides: Partial<Ticket> = {}): Ticket => ({
+  id: 1,
+  subject: 'Test',
+  status: 'Open',
+  priority: 'Medium',
+  customerId: 1,
+  categoryId: null,
+  category: null,
+  assignedToUserId: null,
+  assignedTo: null,
+  responseTimeMinutes: 30,
+  resolutionTimeMinutes: 480,
+  respondedAt: null,
+  resolvedAt: null,
+  createdAt: '2026-08-25T00:00:00Z',
+  updatedAt: '2026-08-25T00:00:00Z',
+  ...overrides
+});
 
 describe('useCommunicationsStore', () => {
   beforeEach(() => {
@@ -52,8 +73,8 @@ describe('useCommunicationsStore', () => {
   it('filters tickets by selected customer', async () => {
     const store = useCommunicationsStore();
     store.tickets = [
-      { id: 1, subject: 'Test 1', status: 'Open', customerId: 1, createdAt: '2026-08-25T00:00:00Z', updatedAt: '2026-08-25T00:00:00Z' },
-      { id: 2, subject: 'Test 2', status: 'Open', customerId: 2, createdAt: '2026-08-25T00:00:00Z', updatedAt: '2026-08-25T00:00:00Z' }
+      ticketFixture({ id: 1, subject: 'Test 1', customerId: 1 }),
+      ticketFixture({ id: 2, subject: 'Test 2', customerId: 2 })
     ];
     store.selectedCustomerId = 1;
 

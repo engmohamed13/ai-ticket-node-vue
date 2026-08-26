@@ -77,13 +77,95 @@ export interface CustomerAttachment {
   createdAt: string;
 }
 
+/**
+ * Hand-copied from `backend/src/tickets/types.ts` — there is no shared package between
+ * `backend/` and `frontend/`, the same relationship CHANNELS and CUSTOMER_STATUSES already
+ * have. `src/tests/ticketContract.spec.ts` guards the copy against a one-sided edit.
+ */
+export const TICKET_STATUSES = ['New', 'Open', 'In Progress', 'Pending', 'Resolved', 'Closed'] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+export const CLOSED_TICKET_STATUSES: readonly TicketStatus[] = ['Resolved', 'Closed'];
+
+export const TICKET_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'] as const;
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
+
+export interface TicketCategory {
+  id: number;
+  name: string;
+  color: string | null;
+  createdAt: string;
+}
+
+/** The staff summary the API embeds on a ticket — never the full user record. */
+export interface TicketAssignee {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface TicketComment {
+  id: number;
+  body: string;
+  ticketId: number;
+  authorId: number;
+  author: { id: number; name: string };
+  createdAt: string;
+}
+
+export interface TicketAttachment {
+  id: number;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  ticketId: number;
+  uploadedById: number;
+  uploadedBy?: { id: number; name: string };
+  createdAt: string;
+}
+
 export interface Ticket {
   id: number;
   subject: string;
-  status: string;
+  status: TicketStatus;
+  priority: TicketPriority;
   customerId: number;
+  categoryId: number | null;
+  category: TicketCategory | null;
+  assignedToUserId: number | null;
+  assignedTo: TicketAssignee | null;
+  responseTimeMinutes: number | null;
+  resolutionTimeMinutes: number | null;
+  respondedAt: string | null;
+  resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** `GET /api/tickets/:id` additionally embeds the customer and both relation lists. */
+export interface TicketDetail extends Ticket {
+  customer: { id: number; name: string; email: string };
+  comments: TicketComment[];
+  attachments: TicketAttachment[];
+}
+
+export interface CreateTicketPayload {
+  subject: string;
+  customerId: number;
+  categoryId?: number;
+  priority?: TicketPriority;
+  assignedToUserId?: number;
+  responseTimeMinutes?: number;
+  resolutionTimeMinutes?: number;
+}
+
+export interface UpdateTicketPayload {
+  subject?: string;
+  status?: TicketStatus;
+  priority?: TicketPriority;
+  categoryId?: number | null;
+  responseTimeMinutes?: number;
+  resolutionTimeMinutes?: number;
 }
 
 export interface Interaction {

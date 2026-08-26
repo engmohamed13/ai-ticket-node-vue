@@ -28,7 +28,8 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'customers:read': 'View the customer list',
   'customers:manage': 'Create and update customer profiles, notes, and attachments',
   'tickets:read': 'View tickets and their timelines',
-  'tickets:manage': 'Change ticket subject and status',
+  'tickets:manage':
+    'Create tickets, assign/reassign to agents, update status and priority, add comments and attachments',
   'interactions:read': 'View customer interactions and unified timelines',
   'interactions:create': 'Create or receive a customer interaction on any channel',
   'interactions:associate': 'Associate an existing interaction with a ticket',

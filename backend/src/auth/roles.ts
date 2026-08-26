@@ -55,6 +55,7 @@ export const ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
     'customers:read',
     'customers:manage',
     'tickets:read',
+    'tickets:manage',
     'interactions:read',
     'interactions:create',
     'interactions:associate'

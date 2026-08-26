@@ -29,9 +29,19 @@ describe('openApiDocument', () => {
 
   it('documents ticket endpoints', () => {
     expect(openApiDocument.paths['/tickets']).toBeDefined();
+    expect(openApiDocument.paths['/tickets'].post).toBeDefined();
+    expect(openApiDocument.paths['/tickets/categories']).toBeDefined();
     expect(openApiDocument.paths['/tickets/{id}']).toBeDefined();
+    expect(openApiDocument.paths['/tickets/{id}'].patch).toBeDefined();
+    expect(openApiDocument.paths['/tickets/{id}/assign']).toBeDefined();
+    expect(openApiDocument.paths['/tickets/{id}/comments']).toBeDefined();
+    expect(openApiDocument.paths['/tickets/{id}/attachments']).toBeDefined();
+    expect(openApiDocument.paths['/tickets/{id}/attachments/{attachmentId}']).toBeDefined();
     expect(openApiDocument.paths['/tickets/{id}/timeline']).toBeDefined();
     expect(openApiDocument.components.schemas.Ticket).toBeDefined();
+    expect(openApiDocument.components.schemas.TicketCategory).toBeDefined();
+    expect(openApiDocument.components.schemas.TicketComment).toBeDefined();
+    expect(openApiDocument.components.schemas.TicketAttachment).toBeDefined();
   });
 
   it('documents interaction endpoints', () => {

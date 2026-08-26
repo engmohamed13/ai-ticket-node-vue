@@ -4,6 +4,21 @@ import { channelAdapters } from '../src/channels/registry';
 import { PERMISSIONS, PERMISSION_DESCRIPTIONS } from '../src/auth/permissions';
 import { hashPassword } from '../src/auth/password';
 import { ROLES, ROLE_LABELS, ROLE_PERMISSIONS } from '../src/auth/roles';
+import {
+  DEFAULT_RESOLUTION_TIME_MINUTES,
+  DEFAULT_RESPONSE_TIME_MINUTES,
+  TICKET_CATEGORIES_PREDEFINED
+} from '../src/tickets/types';
+import type { TicketCategoryPredefined } from '../src/tickets/types';
+
+/** Display colours for the seeded categories — used by the frontend category chips. */
+const TICKET_CATEGORY_COLORS: Record<TicketCategoryPredefined, string> = {
+  'Technical Support': '#3b82f6',
+  Billing: '#f59e0b',
+  'Feature Request': '#8b5cf6',
+  'Bug Report': '#ef4444',
+  'General Inquiry': '#64748b'
+};
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
@@ -36,12 +51,31 @@ const main = async (): Promise<void> => {
     }
   });
 
+  // --- Ticket categories. The global list every ticket picks from (Story 13).
+  const categoryIdByName = new Map<string, number>();
+  for (const name of TICKET_CATEGORIES_PREDEFINED) {
+    const category = await prisma.ticketCategory.upsert({
+      where: { name },
+      update: {},
+      create: { name, color: TICKET_CATEGORY_COLORS[name] }
+    });
+    categoryIdByName.set(name, category.id);
+  }
+
   let ticket = await prisma.ticket.findFirst({
     where: { customerId: customer.id, subject: 'Cannot log in to my account' }
   });
   if (!ticket) {
     ticket = await prisma.ticket.create({
-      data: { subject: 'Cannot log in to my account', status: 'Open', customerId: customer.id }
+      data: {
+        subject: 'Cannot log in to my account',
+        status: 'Open',
+        priority: 'High',
+        categoryId: categoryIdByName.get('Technical Support'),
+        customerId: customer.id,
+        responseTimeMinutes: DEFAULT_RESPONSE_TIME_MINUTES,
+        resolutionTimeMinutes: DEFAULT_RESOLUTION_TIME_MINUTES
+      }
     });
   }
 
@@ -214,9 +248,52 @@ const main = async (): Promise<void> => {
     });
   }
 
+  // The demo ticket is assigned only once the agent user exists. `assignedToUserId` is
+  // deliberately not part of the ticket create above so a reassignment made through the
+  // API (Story 14) is not silently reverted on the next reseed.
+  if (ticket.assignedToUserId === null) {
+    ticket = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { assignedToUserId: supportAgent.id }
+    });
+  }
+
+  // Backfill a demo ticket that was seeded before Story 13 added the workflow/SLA columns.
+  // Such a row exists (so the create above was skipped) but has nothing in the new nullable
+  // fields, which would leave the demo with no category and no SLA targets to display.
+  // Guarded on all three still being null, so this runs once at the migration boundary and
+  // never overwrites a category or target an agent has since set through the API.
+  if (
+    ticket.categoryId === null &&
+    ticket.responseTimeMinutes === null &&
+    ticket.resolutionTimeMinutes === null
+  ) {
+    ticket = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: {
+        priority: 'High',
+        categoryId: categoryIdByName.get('Technical Support'),
+        responseTimeMinutes: DEFAULT_RESPONSE_TIME_MINUTES,
+        resolutionTimeMinutes: DEFAULT_RESOLUTION_TIME_MINUTES
+      }
+    });
+  }
+
+  const existingComment = await prisma.ticketComment.findFirst({ where: { ticketId: ticket.id } });
+  if (!existingComment) {
+    await prisma.ticketComment.create({
+      data: {
+        ticketId: ticket.id,
+        authorId: supportAgent.id,
+        body: 'Reproduced the login failure on staging. Password reset e-mail is not being delivered — escalating to the platform team.'
+      }
+    });
+  }
+
   console.log(
-    'Seed complete: system_info, 1 customer, 1 ticket, 5 interactions (one per channel), 1 customer note, ' +
-      `2 branches, 3 departments, ${PERMISSIONS.length} permissions, ${ROLES.length} roles, ` +
+    'Seed complete: system_info, 1 customer, 1 ticket (assigned, 1 comment), 5 interactions (one per channel), ' +
+      `1 customer note, ${TICKET_CATEGORIES_PREDEFINED.length} ticket categories, 2 branches, 3 departments, ` +
+      `${PERMISSIONS.length} permissions, ${ROLES.length} roles, ` +
       `${demoUsers.length} demo users (password: ${DEMO_PASSWORD})`
   );
 };

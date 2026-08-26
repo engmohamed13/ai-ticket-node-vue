@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
+import NotificationToasts from './components/NotificationToasts.vue';
 
 const route = useRoute();
 const showShell = computed(() => route.meta.public !== true);
@@ -29,6 +30,7 @@ watch(
         <RouterView />
       </main>
     </div>
+    <NotificationToasts />
   </div>
   <RouterView v-else />
 </template>

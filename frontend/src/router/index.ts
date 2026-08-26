@@ -8,6 +8,8 @@ import LoginView from '../views/LoginView.vue';
 import NotFoundView from '../views/NotFoundView.vue';
 import RolesView from '../views/RolesView.vue';
 import SystemHealthView from '../views/SystemHealthView.vue';
+import TicketDetailView from '../views/TicketDetailView.vue';
+import TicketsView from '../views/TicketsView.vue';
 import UsersView from '../views/UsersView.vue';
 import { useAuthStore } from '../stores/auth';
 import type { Permission } from '../types';
@@ -61,6 +63,18 @@ const router = createRouter({
       name: 'customer-detail',
       component: CustomerDetailView,
       meta: { permission: 'customers:read' }
+    },
+    {
+      path: '/tickets',
+      name: 'tickets',
+      component: TicketsView,
+      meta: { navLabel: 'Tickets', permission: 'tickets:read' }
+    },
+    {
+      path: '/tickets/:id',
+      name: 'ticket-detail',
+      component: TicketDetailView,
+      meta: { permission: 'tickets:read' }
     },
     {
       path: '/users',

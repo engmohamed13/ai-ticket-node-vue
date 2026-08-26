@@ -83,20 +83,91 @@ model CustomerAttachment {
   @@map("customer_attachments")
 }
 
-/// Minimal ticket record — scoped to what interactions need to associate against.
-/// Ticket workflow (priority, assignee, comments) is out of scope for this feature.
+/// A customer support ticket. Originally minimal (Story 05, "scoped to what interactions
+/// need to associate against"), extended in Story 13 (work item 5) with assignment,
+/// category, priority, SLA tracking, and comment/attachment support — the ticket workflow
+/// the original comment here explicitly deferred.
+/// `status` and `priority` are plain Strings validated by the API layer against the
+/// TICKET_STATUSES / TICKET_PRIORITIES constants in `src/tickets/types.ts`, following the
+/// same convention as Interaction.channel rather than a Prisma enum.
 model Ticket {
-  id           Int           @id @default(autoincrement())
-  subject      String
-  status       String        @default("Open")
-  customerId   Int
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                    Int                @id @default(autoincrement())
+  subject               String
+  status                String             @default("New")
+  priority              String             @default("Medium")
+  categoryId            Int?
+  customerId            Int
+  assignedToUserId      Int?
+  responseTimeMinutes   Int?
+  resolutionTimeMinutes Int?
+  respondedAt           DateTime?
+  resolvedAt            DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
-  customer     Customer      @relation(fields: [customerId], references: [id])
-  interactions Interaction[]
+  customer              Customer           @relation(fields: [customerId], references: [id])
+  category              TicketCategory?    @relation(fields: [categoryId], references: [id])
+  assignedTo            User?              @relation(fields: [assignedToUserId], references: [id])
+  interactions          Interaction[]
+  comments              TicketComment[]
+  attachments           TicketAttachment[]
 
+  @@index([customerId])
+  @@index([categoryId])
+  @@index([assignedToUserId])
   @@map("tickets")
+}
+
+/// A ticket category (e.g. "Technical Support", "Billing"). Owned by the organisation —
+/// all tickets share one global list. No soft-delete: an archived category would remain
+/// visible on historical tickets, so categories are seed-managed only for now.
+model TicketCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  color     String?
+  createdAt DateTime @default(now())
+
+  tickets   Ticket[]
+
+  @@map("ticket_categories")
+}
+
+/// An internal comment an agent leaves on a ticket. Not customer-facing — the endpoints
+/// that read and write it are gated on `tickets:manage`, which no CUSTOMER-role user holds
+/// (see backend/src/auth/roles.ts).
+model TicketComment {
+  id        Int      @id @default(autoincrement())
+  body      String
+  ticketId  Int
+  authorId  Int
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_comments")
+}
+
+/// Metadata for a file attached to a ticket. The binary lives on local disk under
+/// `UPLOAD_DIR` (backend/src/config/env.ts); `storagePath` is the pointer to it and is
+/// never serialized back to the frontend (Story 14 strips it before responding), exactly
+/// as CustomerAttachment above.
+model TicketAttachment {
+  id           Int      @id @default(autoincrement())
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  storagePath  String
+  ticketId     Int
+  uploadedById Int
+  createdAt    DateTime @default(now())
+
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_attachments")
 }
 
 /// A single customer interaction on one of the supported communication channels.
@@ -218,6 +289,9 @@ model User {
   customer     Customer?   @relation(fields: [customerId], references: [id])
   customerNotes       CustomerNote[]
   customerAttachments CustomerAttachment[]
+  assignedTickets     Ticket[]
+  ticketComments      TicketComment[]
+  ticketAttachments   TicketAttachment[]
 
   @@index([roleId])
   @@index([departmentId])

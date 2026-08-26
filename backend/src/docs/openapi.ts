@@ -1,6 +1,8 @@
 // TODO: generate this document from the zod route schemas once more endpoints exist.
 // Hand-authored for now so the docs have zero codegen dependencies.
 
+import { TICKET_PRIORITIES, TICKET_STATUSES } from '../tickets/types';
+
 export const openApiDocument = {
   openapi: '3.0.3',
   info: {
@@ -78,17 +80,84 @@ export const openApiDocument = {
         },
         required: ['id', 'fileName', 'mimeType', 'sizeBytes', 'customerId', 'uploadedById', 'createdAt']
       },
+      TicketCategory: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string' },
+          color: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' }
+        },
+        required: ['id', 'name', 'color', 'createdAt']
+      },
+      TicketComment: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          body: { type: 'string' },
+          ticketId: { type: 'integer' },
+          authorId: { type: 'integer' },
+          author: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer' },
+              name: { type: 'string' }
+            }
+          },
+          createdAt: { type: 'string', format: 'date-time' }
+        },
+        required: ['id', 'body', 'ticketId', 'authorId', 'author', 'createdAt']
+      },
+      TicketAttachment: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          fileName: { type: 'string' },
+          mimeType: { type: 'string' },
+          sizeBytes: { type: 'integer' },
+          ticketId: { type: 'integer' },
+          uploadedById: { type: 'integer' },
+          uploadedBy: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer' },
+              name: { type: 'string' }
+            }
+          },
+          createdAt: { type: 'string', format: 'date-time' }
+        },
+        required: ['id', 'fileName', 'mimeType', 'sizeBytes', 'ticketId', 'uploadedById', 'createdAt']
+      },
       Ticket: {
         type: 'object',
         properties: {
           id: { type: 'integer' },
           subject: { type: 'string' },
-          status: { type: 'string' },
+          status: { type: 'string', enum: [...TICKET_STATUSES] },
+          priority: { type: 'string', enum: [...TICKET_PRIORITIES] },
           customerId: { type: 'integer' },
+          categoryId: { type: 'integer', nullable: true },
+          category: { allOf: [{ $ref: '#/components/schemas/TicketCategory' }], nullable: true },
+          assignedToUserId: { type: 'integer', nullable: true },
+          assignedTo: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: { type: 'integer' },
+              name: { type: 'string' },
+              email: { type: 'string' }
+            }
+          },
+          responseTimeMinutes: { type: 'integer', nullable: true },
+          resolutionTimeMinutes: { type: 'integer', nullable: true },
+          respondedAt: { type: 'string', format: 'date-time', nullable: true },
+          resolvedAt: { type: 'string', format: 'date-time', nullable: true },
+          comments: { type: 'array', items: { $ref: '#/components/schemas/TicketComment' } },
+          attachments: { type: 'array', items: { $ref: '#/components/schemas/TicketAttachment' } },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' }
         },
-        required: ['id', 'subject', 'status', 'customerId', 'createdAt', 'updatedAt']
+        required: ['id', 'subject', 'status', 'priority', 'customerId', 'createdAt', 'updatedAt']
       },
       Interaction: {
         type: 'object',
@@ -849,6 +918,37 @@ export const openApiDocument = {
         }
       }
     },
+    '/tickets/categories': {
+      get: {
+        summary: 'List ticket categories',
+        responses: {
+          '200': {
+            description: 'List of ticket categories',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      }
+    },
     '/tickets': {
       get: {
         summary: 'List tickets',
@@ -858,6 +958,43 @@ export const openApiDocument = {
             in: 'query',
             required: false,
             schema: { type: 'integer' }
+          },
+          {
+            name: 'status',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: [...TICKET_STATUSES] }
+          },
+          {
+            name: 'priority',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: [...TICKET_PRIORITIES] }
+          },
+          {
+            name: 'categoryId',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer' }
+          },
+          {
+            name: 'assignedToUserId',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer' }
+          },
+          {
+            name: 'assignedToMe',
+            in: 'query',
+            required: false,
+            description: 'Dashboard My Tickets tab - resolves to the own user id of the caller.',
+            schema: { type: 'string', enum: ['true', 'false'] }
+          },
+          {
+            name: 'unassigned',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['true', 'false'] }
           }
         ],
         responses: {
@@ -879,6 +1016,71 @@ export const openApiDocument = {
           },
           '403': {
             description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      },
+      post: {
+        summary: 'Create a ticket',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  subject: { type: 'string' },
+                  customerId: { type: 'integer' },
+                  categoryId: { type: 'integer' },
+                  priority: { type: 'string', enum: [...TICKET_PRIORITIES] },
+                  assignedToUserId: { type: 'integer' },
+                  responseTimeMinutes: { type: 'integer' },
+                  resolutionTimeMinutes: { type: 'integer' }
+                },
+                required: ['subject', 'customerId']
+              }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'Ticket created',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '400': {
+            description: 'Validation failed or the assignee is not an active staff user',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Customer, category, or assignee not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ApiResponse' }
@@ -926,6 +1128,478 @@ export const openApiDocument = {
           },
           '404': {
             description: 'Ticket not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      },
+      patch: {
+        summary: 'Update a ticket subject, status, priority, category, or SLA targets',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  subject: { type: 'string' },
+                  status: { type: 'string', enum: [...TICKET_STATUSES] },
+                  priority: { type: 'string', enum: [...TICKET_PRIORITIES] },
+                  categoryId: { type: 'integer', nullable: true },
+                  responseTimeMinutes: { type: 'integer' },
+                  resolutionTimeMinutes: { type: 'integer' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Ticket updated',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '400': {
+            description: 'Validation failed or no fields supplied',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Ticket or category not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/tickets/{id}/assign': {
+      patch: {
+        summary: 'Assign or reassign a ticket to an agent. Send null to unassign.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  assignedToUserId: { type: 'integer', nullable: true }
+                },
+                required: ['assignedToUserId']
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Ticket assigned',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '400': {
+            description: 'The assignee is deactivated or is a customer account',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Ticket or user not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/tickets/{id}/comments': {
+      get: {
+        summary: 'List internal comments on a ticket',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'List of ticket comments',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Ticket not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      },
+      post: {
+        summary: 'Add an internal comment to a ticket',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  body: { type: 'string' }
+                },
+                required: ['body']
+              }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'Comment added',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '400': {
+            description: 'Validation failed',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Ticket not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/tickets/{id}/attachments': {
+      get: {
+        summary: 'List attachments on a ticket',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'List of ticket attachments',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Ticket not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      },
+      post: {
+        summary: 'Upload an attachment to a ticket',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  file: { type: 'string', format: 'binary' }
+                },
+                required: ['file']
+              }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'Attachment uploaded',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '400': {
+            description: 'Missing file or file exceeds the maximum allowed size',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Ticket not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/tickets/{id}/attachments/{attachmentId}/download': {
+      get: {
+        summary: 'Download a ticket attachment',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          },
+          {
+            name: 'attachmentId',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'The attachment binary',
+            content: {
+              'application/octet-stream': {}
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Attachment not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/tickets/{id}/attachments/{attachmentId}': {
+      delete: {
+        summary: 'Delete a ticket attachment',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          },
+          {
+            name: 'attachmentId',
+            in: 'path',
+            required: true,
+            schema: { type: 'integer' }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Attachment deleted',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Attachment not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ApiResponse' }
