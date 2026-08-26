@@ -39,6 +39,9 @@ export const ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
     'interactions:read',
     'interactions:create',
     'interactions:associate',
+    'feedback:read',
+    'kb:read',
+    'kb:manage',
     'reports:read'
   ],
   SUPPORT_SUPERVISOR: [
@@ -49,6 +52,9 @@ export const ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
     'interactions:read',
     'interactions:create',
     'interactions:associate',
+    'feedback:read',
+    'kb:read',
+    'kb:manage',
     'reports:read'
   ],
   SUPPORT_AGENT: [
@@ -58,8 +64,25 @@ export const ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
     'tickets:manage',
     'interactions:read',
     'interactions:create',
-    'interactions:associate'
+    'interactions:associate',
+    'feedback:read'
   ],
-  CUSTOMER: ['tickets:read', 'interactions:read', 'interactions:create'],
-  REPORTING_USER: ['customers:read', 'tickets:read', 'interactions:read', 'reports:read']
+  // `feedback:read` lets a customer see the rating it already left on its own ticket; the
+  // route still runs assertCustomerScope, so it can never read another customer's feedback.
+  CUSTOMER: [
+    'tickets:read',
+    'interactions:read',
+    'interactions:create',
+    'feedback:read',
+    'feedback:write',
+    'kb:read'
+  ],
+  REPORTING_USER: [
+    'customers:read',
+    'tickets:read',
+    'interactions:read',
+    'feedback:read',
+    'kb:read',
+    'reports:read'
+  ]
 };

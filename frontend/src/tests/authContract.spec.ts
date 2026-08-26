@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { PERMISSIONS, ROLES } from '../types';
 
 describe('auth contract (must mirror backend/src/auth)', () => {
-  it('PERMISSIONS has exactly 14 entries matching the backend tuple', () => {
-    expect(PERMISSIONS).toHaveLength(14);
+  it('PERMISSIONS has exactly 18 entries matching the backend tuple', () => {
+    expect(PERMISSIONS).toHaveLength(18);
     expect([...PERMISSIONS]).toEqual([
       'users:read',
       'users:manage',
@@ -18,6 +18,10 @@ describe('auth contract (must mirror backend/src/auth)', () => {
       'interactions:read',
       'interactions:create',
       'interactions:associate',
+      'feedback:read',
+      'feedback:write',
+      'kb:read',
+      'kb:manage',
       'reports:read'
     ]);
   });

@@ -36,6 +36,38 @@ describe('router', () => {
     expect(resolved.params.id).toBe('42');
   });
 
+  it('resolves /portal to the customer portal route', () => {
+    expect(router.resolve('/portal').name).toBe('portal');
+  });
+
+  it('resolves /portal/tickets/42 to the portal-ticket-detail route', () => {
+    const resolved = router.resolve('/portal/tickets/42');
+    expect(resolved.name).toBe('portal-ticket-detail');
+    expect(resolved.params.id).toBe('42');
+  });
+
+  it('resolves /dashboard/management to the management-dashboard route', () => {
+    expect(router.resolve('/dashboard/management').name).toBe('management-dashboard');
+  });
+
+  it('resolves /kb to the knowledge base route', () => {
+    expect(router.resolve('/kb').name).toBe('kb');
+  });
+
+  it('resolves the /kb/articles alias to the same browse route', () => {
+    expect(router.resolve('/kb/articles').name).toBe('kb');
+  });
+
+  it('resolves /kb/articles/42 to the kb-article route', () => {
+    const resolved = router.resolve('/kb/articles/42');
+    expect(resolved.name).toBe('kb-article');
+    expect(resolved.params.id).toBe('42');
+  });
+
+  it('resolves /kb/manage to the kb-manage route', () => {
+    expect(router.resolve('/kb/manage').name).toBe('kb-manage');
+  });
+
   it('resolves /roles to the roles route', () => {
     expect(router.resolve('/roles').name).toBe('roles');
   });

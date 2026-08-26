@@ -12,6 +12,10 @@ export const PERMISSIONS = [
   'interactions:read',
   'interactions:create',
   'interactions:associate',
+  'feedback:read',
+  'feedback:write',
+  'kb:read',
+  'kb:manage',
   'reports:read'
 ] as const;
 
@@ -33,5 +37,9 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'interactions:read': 'View customer interactions and unified timelines',
   'interactions:create': 'Create or receive a customer interaction on any channel',
   'interactions:associate': 'Associate an existing interaction with a ticket',
+  'feedback:read': 'View the satisfaction rating and comment a customer left on a ticket',
+  'feedback:write': 'Submit a satisfaction rating and comment on a resolved ticket',
+  'kb:read': 'Browse and search published knowledge base articles',
+  'kb:manage': 'Write, edit, publish, and unpublish knowledge base articles',
   'reports:read': 'View reporting and analytics data'
 };

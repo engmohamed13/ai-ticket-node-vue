@@ -12,6 +12,9 @@ const router = useRouter();
 const navItems = computed(() =>
   router.getRoutes().filter((route) => {
     if (!route.meta.navLabel) return false;
+    // Customer-portal routes are role-gated, not permission-gated: staff hold `tickets:read`
+    // as well, so the permission check alone would list "My Tickets" for agents too.
+    if (route.meta.customerOnly && auth.user?.roleKey !== 'CUSTOMER') return false;
     return !route.meta.permission || auth.can(route.meta.permission);
   })
 );
@@ -23,7 +26,10 @@ const ICONS: Record<string, string> = {
   communications: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
   tickets: 'M4 7a2 2 0 012-2h12a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3a2 2 0 000-4V7zM10 5v14',
   users: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
-  roles: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z'
+  roles: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z',
+  portal: 'M4 7a2 2 0 012-2h12a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3a2 2 0 000-4V7zM10 5v14',
+  kb: 'M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z',
+  'management-dashboard': 'M18 20V10M12 20V4M6 20v-6'
 };
 </script>
 

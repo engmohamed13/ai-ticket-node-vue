@@ -71,13 +71,14 @@ export const createTicketHandler = async (req: Request, res: Response): Promise<
 
 export const updateTicketHandler = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params as unknown as { id: number };
-  res.json(ok(await updateTicket(id, req.body), 'Ticket updated'));
+  // The actor is passed so the service can skip notifying someone about their own edit.
+  res.json(ok(await updateTicket(id, req.body, getAuth(req).userId), 'Ticket updated'));
 };
 
 export const assignTicketHandler = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params as unknown as { id: number };
   const { assignedToUserId } = req.body as { assignedToUserId: number | null };
-  const ticket = await assignTicket(id, assignedToUserId);
+  const ticket = await assignTicket(id, assignedToUserId, getAuth(req).userId);
   res.json(ok(ticket, assignedToUserId === null ? 'Ticket unassigned' : 'Ticket assigned'));
 };
 

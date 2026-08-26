@@ -1,12 +1,32 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
 import NotificationToasts from './components/NotificationToasts.vue';
+import { useAuthStore } from './stores/auth';
+import { useNotificationsStore } from './stores/notifications';
 
 const route = useRoute();
+const auth = useAuthStore();
+const notifications = useNotificationsStore();
 const showShell = computed(() => route.meta.public !== true);
+
+/**
+ * The notification inbox is polled for as long as there is a session, and only then — the
+ * login screen must not fire authenticated requests. Signing out clears the previous user's
+ * inbox so nothing leaks into the next session on a shared machine.
+ */
+watch(
+  () => auth.isAuthenticated,
+  (signedIn) => {
+    if (signedIn) void notifications.startPolling();
+    else notifications.clear();
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => notifications.stopPolling());
 
 // Mobile nav drawer state — purely presentational, lives here so the toggle
 // button in AppHeader and the drawer in AppSidebar share one source of truth.

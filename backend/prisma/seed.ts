@@ -290,9 +290,134 @@ const main = async (): Promise<void> => {
     });
   }
 
+  // --- Knowledge base. Two categories and three published articles (Story 18) so the
+  // search, category filter, and "most read" dashboard panel all have real data to show.
+  const KB_SEED = [
+    {
+      category: 'Getting Started',
+      categoryDescription: 'First steps for new customers',
+      title: 'How do I raise a support ticket?',
+      summary: 'Open a request from the portal and track it through to resolution.',
+      body: [
+        '# Raising a support ticket',
+        '',
+        'Sign in and open **My Tickets** from the sidebar. Every request you have raised is',
+        'listed there with its current status.',
+        '',
+        '- **New** and **Open** mean we have your request and it is queued.',
+        '- **In Progress** means an agent is actively working on it.',
+        '- **Pending** means we are waiting on something from you.',
+        '- **Resolved** and **Closed** mean the work is finished.',
+        '',
+        'Once a request is resolved you can rate it from the ticket page.'
+      ].join('\n')
+    },
+    {
+      category: 'Getting Started',
+      categoryDescription: 'First steps for new customers',
+      title: 'What do the ticket priorities mean?',
+      summary: 'Low, Medium, High, and Urgent, and the response time each one targets.',
+      body: [
+        '# Ticket priorities',
+        '',
+        'Priority sets the order in which our agents pick work up.',
+        '',
+        '- **Urgent** — a complete outage or something blocking payment.',
+        '- **High** — a major feature is unusable and there is no workaround.',
+        '- **Medium** — the default: something is wrong but you can still work.',
+        '- **Low** — a question, or a cosmetic problem.',
+        '',
+        'An agent may re-prioritise a ticket after reading it.'
+      ].join('\n')
+    },
+    {
+      category: 'Troubleshooting',
+      categoryDescription: 'Fixes for the problems we are asked about most',
+      title: 'I cannot sign in to my account',
+      summary: 'Password resets, locked accounts, and what to send us if neither helps.',
+      body: [
+        '# Cannot sign in',
+        '',
+        '## Reset your password',
+        'Use the password reset link on the sign-in screen. The e-mail arrives within a few',
+        'minutes — check your spam folder before trying again.',
+        '',
+        '## Still locked out?',
+        'Raise a ticket with the e-mail address on the account and the time of your last',
+        'successful sign-in. Never send us your password.'
+      ].join('\n')
+    }
+  ];
+
+  const kbCategoryIdByName = new Map<string, number>();
+  for (const entry of KB_SEED) {
+    if (kbCategoryIdByName.has(entry.category)) continue;
+    const category = await prisma.kbCategory.upsert({
+      where: { name: entry.category },
+      update: {},
+      create: { name: entry.category, description: entry.categoryDescription }
+    });
+    kbCategoryIdByName.set(entry.category, category.id);
+  }
+
+  for (const entry of KB_SEED) {
+    const existing = await prisma.kbArticle.findFirst({ where: { title: entry.title } });
+    if (existing) continue;
+    await prisma.kbArticle.create({
+      data: {
+        title: entry.title,
+        summary: entry.summary,
+        body: entry.body,
+        categoryId: kbCategoryIdByName.get(entry.category)!,
+        isPublished: true,
+        authorId: supportAgent.id
+      }
+    });
+  }
+
+  // A second, already-finished ticket so the customer portal (Story 17) has something to rate.
+  // The live demo ticket above stays Open on purpose — the portal needs one of each so
+  // "track an open ticket" and "rate a closed one" can both be shown.
+  let resolvedTicket = await prisma.ticket.findFirst({
+    where: { customerId: customer.id, subject: 'Invoice shows the wrong billing address' }
+  });
+  if (!resolvedTicket) {
+    const resolvedAt = new Date();
+    resolvedTicket = await prisma.ticket.create({
+      data: {
+        subject: 'Invoice shows the wrong billing address',
+        status: 'Resolved',
+        priority: 'Medium',
+        categoryId: categoryIdByName.get('Billing'),
+        customerId: customer.id,
+        assignedToUserId: supportAgent.id,
+        responseTimeMinutes: DEFAULT_RESPONSE_TIME_MINUTES,
+        resolutionTimeMinutes: DEFAULT_RESOLUTION_TIME_MINUTES,
+        respondedAt: resolvedAt,
+        resolvedAt
+      }
+    });
+  }
+
+  const existingFeedback = await prisma.ticketFeedback.findUnique({
+    where: { ticketId: resolvedTicket.id }
+  });
+  if (!existingFeedback) {
+    await prisma.ticketFeedback.create({
+      data: {
+        ticketId: resolvedTicket.id,
+        customerId: customer.id,
+        rating: 5,
+        comment: 'Sorted out the same day and the corrected invoice arrived straight away. Thank you!'
+      }
+    });
+  }
+
   console.log(
-    'Seed complete: system_info, 1 customer, 1 ticket (assigned, 1 comment), 5 interactions (one per channel), ' +
-      `1 customer note, ${TICKET_CATEGORIES_PREDEFINED.length} ticket categories, 2 branches, 3 departments, ` +
+    'Seed complete: system_info, 1 customer, 2 tickets (1 open + assigned with 1 comment, ' +
+      '1 resolved with 5-star feedback), 5 interactions (one per channel), ' +
+      `1 customer note, ${TICKET_CATEGORIES_PREDEFINED.length} ticket categories, ` +
+      `${kbCategoryIdByName.size} KB categories, ${KB_SEED.length} published KB articles, 2 branches, 3 departments, ` +
       `${PERMISSIONS.length} permissions, ${ROLES.length} roles, ` +
       `${demoUsers.length} demo users (password: ${DEMO_PASSWORD})`
   );

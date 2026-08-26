@@ -108,6 +108,162 @@ export const openApiDocument = {
         },
         required: ['id', 'body', 'ticketId', 'authorId', 'author', 'createdAt']
       },
+      TicketsSummary: {
+        type: 'object',
+        properties: {
+          totalTickets: { type: 'integer' },
+          openTickets: { type: 'integer' },
+          pendingTickets: { type: 'integer' },
+          resolvedTickets: { type: 'integer' },
+          overdueTickets: { type: 'integer' },
+          unassignedTickets: { type: 'integer' },
+          byStatus: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { status: { type: 'string' }, count: { type: 'integer' } }
+            }
+          },
+          byPriority: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { priority: { type: 'string' }, count: { type: 'integer' } }
+            }
+          }
+        },
+        required: ['totalTickets', 'openTickets', 'resolvedTickets', 'overdueTickets', 'byStatus', 'byPriority']
+      },
+      CustomerSatisfaction: {
+        type: 'object',
+        properties: {
+          averageRating: {
+            type: 'number',
+            nullable: true,
+            description: 'null when nothing has been rated yet, never 0'
+          },
+          totalFeedback: { type: 'integer' },
+          ratingBreakdown: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { rating: { type: 'integer' }, count: { type: 'integer' } }
+            }
+          }
+        },
+        required: ['averageRating', 'totalFeedback', 'ratingBreakdown']
+      },
+      TicketTrendPoint: {
+        type: 'object',
+        properties: {
+          week: { type: 'string', description: 'ISO week key, e.g. 2026-W35' },
+          created: { type: 'integer' },
+          resolved: { type: 'integer' }
+        },
+        required: ['week', 'created', 'resolved']
+      },
+      AgentWorkloadRow: {
+        type: 'object',
+        properties: {
+          agentId: { type: 'integer' },
+          agentName: { type: 'string' },
+          totalAssigned: { type: 'integer' },
+          open: { type: 'integer' },
+          pending: { type: 'integer' },
+          resolved: { type: 'integer' },
+          overdue: { type: 'integer' }
+        },
+        required: ['agentId', 'agentName', 'totalAssigned', 'open', 'pending', 'resolved', 'overdue']
+      },
+      Notification: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          userId: { type: 'integer' },
+          type: {
+            type: 'string',
+            enum: [
+              'ticket_assigned',
+              'ticket_status_changed',
+              'ticket_comment',
+              'ticket_overdue',
+              'feedback_received'
+            ]
+          },
+          title: { type: 'string' },
+          message: { type: 'string' },
+          isRead: { type: 'boolean' },
+          relatedTicketId: { type: 'integer', nullable: true },
+          relatedCustomerId: { type: 'integer', nullable: true },
+          relatedFeedbackId: { type: 'integer', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' }
+        },
+        required: ['id', 'userId', 'type', 'title', 'message', 'isRead', 'createdAt']
+      },
+      KbCategory: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string' },
+          description: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' }
+        },
+        required: ['id', 'name', 'createdAt']
+      },
+      KbArticle: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          title: { type: 'string' },
+          summary: { type: 'string', nullable: true },
+          body: { type: 'string', description: 'Markdown. Omitted from list responses.' },
+          categoryId: { type: 'integer' },
+          category: { $ref: '#/components/schemas/KbCategory' },
+          isPublished: { type: 'boolean' },
+          viewCount: { type: 'integer' },
+          authorId: { type: 'integer' },
+          author: {
+            type: 'object',
+            properties: { id: { type: 'integer' }, name: { type: 'string' } }
+          },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        },
+        required: [
+          'id',
+          'title',
+          'categoryId',
+          'isPublished',
+          'viewCount',
+          'authorId',
+          'createdAt',
+          'updatedAt'
+        ]
+      },
+      TicketFeedback: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          rating: { type: 'integer', minimum: 1, maximum: 5 },
+          comment: { type: 'string', nullable: true },
+          ticketId: { type: 'integer' },
+          customerId: { type: 'integer' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        },
+        required: ['id', 'rating', 'ticketId', 'customerId', 'createdAt', 'updatedAt']
+      },
+      CustomerPortalSummary: {
+        type: 'object',
+        properties: {
+          totalTickets: { type: 'integer' },
+          openTickets: { type: 'integer' },
+          pendingTickets: { type: 'integer' },
+          resolvedTickets: { type: 'integer' },
+          awaitingFeedback: { type: 'integer' }
+        },
+        required: ['totalTickets', 'openTickets', 'pendingTickets', 'resolvedTickets', 'awaitingFeedback']
+      },
       TicketAttachment: {
         type: 'object',
         properties: {
@@ -275,6 +431,560 @@ export const openApiDocument = {
   },
   security: [{ bearerAuth: [] }],
   paths: {
+    '/dashboard/tickets-summary': {
+      get: {
+        summary: 'Ticket KPIs and the status/priority distributions',
+        description:
+          'Requires reports:read. Overdue is derived per row from the SLA targets, since nothing marks a ticket overdue on a schedule. Every status and priority is returned, zeros included.',
+        parameters: [
+          { name: 'startDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'endDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'status', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'priority', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'assignedToUserId', in: 'query', required: false, schema: { type: 'integer' } }
+        ],
+        responses: {
+          '200': {
+            description: 'Counters plus the two distributions',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/TicketsSummary' } } }
+          },
+          '400': {
+            description: 'Validation failed, or startDate is after endDate',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden - requires reports:read',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/dashboard/customer-satisfaction': {
+      get: {
+        summary: 'Average customer satisfaction rating and its breakdown',
+        description:
+          'Requires reports:read. Filtered by when the rating was left, not when the ticket was opened.',
+        parameters: [
+          { name: 'startDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'endDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'status', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'priority', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'assignedToUserId', in: 'query', required: false, schema: { type: 'integer' } }
+        ],
+        responses: {
+          '200': {
+            description: 'Average, total, and the 1-5 breakdown',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CustomerSatisfaction' } }
+            }
+          },
+          '400': {
+            description: 'Validation failed, or startDate is after endDate',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden - requires reports:read',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/dashboard/ticket-trends': {
+      get: {
+        summary: 'Tickets created and resolved per week',
+        description:
+          'Requires reports:read. Returns one bucket per week in the trailing window, zeros included, oldest first.',
+        parameters: [
+          {
+            name: 'weeks',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, maximum: 52, default: 8 }
+          },
+          { name: 'startDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'endDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'status', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'priority', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'assignedToUserId', in: 'query', required: false, schema: { type: 'integer' } }
+        ],
+        responses: {
+          '200': {
+            description: 'The weekly series',
+            content: {
+              'application/json': {
+                schema: { type: 'array', items: { $ref: '#/components/schemas/TicketTrendPoint' } }
+              }
+            }
+          },
+          '400': {
+            description: 'Validation failed, or startDate is after endDate',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden - requires reports:read',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/dashboard/agent-workload': {
+      get: {
+        summary: 'Per-agent ticket load, busiest first',
+        description:
+          'Requires reports:read. Agents holding no tickets are omitted - the panel answers who is loaded, not who exists.',
+        parameters: [
+          { name: 'startDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'endDate', in: 'query', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'status', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'priority', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'assignedToUserId', in: 'query', required: false, schema: { type: 'integer' } }
+        ],
+        responses: {
+          '200': {
+            description: 'One row per agent holding at least one ticket',
+            content: {
+              'application/json': {
+                schema: { type: 'array', items: { $ref: '#/components/schemas/AgentWorkloadRow' } }
+              }
+            }
+          },
+          '400': {
+            description: 'Validation failed, or startDate is after endDate',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden - requires reports:read',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/dashboard/kb-top-articles': {
+      get: {
+        summary: 'Most-read published knowledge base articles',
+        description: 'Requires reports:read.',
+        parameters: [
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, maximum: 25, default: 5 }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Articles ranked by view count',
+            content: {
+              'application/json': {
+                schema: { type: 'array', items: { $ref: '#/components/schemas/KbArticle' } }
+              }
+            }
+          },
+          '400': {
+            description: 'Validation failed, or startDate is after endDate',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden - requires reports:read',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/notifications': {
+      get: {
+        summary: 'List the signed-in user in-app notifications',
+        description:
+          'No permission gate: every authenticated caller reads its own inbox and nobody else can. Reading the list is also what raises overdue (SLA) notifications, since this module has no scheduler. Returns the newest 50 plus the unread count.',
+        parameters: [
+          {
+            name: 'unreadOnly',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['true', 'false'] }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'An object with items and unreadCount',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '400': {
+            description: 'Validation failed',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/notifications/read-all': {
+      patch: {
+        summary: 'Mark every unread notification as read',
+        responses: {
+          '200': {
+            description: 'The number of notifications updated',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/notifications/{id}/read': {
+      patch: {
+        summary: 'Mark one notification as read',
+        description: 'Scoped to the caller: another user notification is a 404, not a 403.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': {
+            description: 'The updated notification',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '404': {
+            description: 'Notification not found',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/notifications/{id}': {
+      delete: {
+        summary: 'Dismiss one notification',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': {
+            description: 'Notification dismissed',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '404': {
+            description: 'Notification not found',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/kb/categories': {
+      get: {
+        summary: 'List knowledge base categories',
+        description: 'Requires kb:read, which every role holds.',
+        responses: {
+          '200': {
+            description: 'Categories, alphabetically',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/kb/articles': {
+      get: {
+        summary: 'Search and list knowledge base articles',
+        description:
+          'Requires kb:read. Returns published articles only, unless the caller holds kb:manage and passes includeDrafts=true. The markdown body is omitted from list rows.',
+        parameters: [
+          {
+            name: 'search',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description: 'Case-insensitive match against title, summary, and body'
+          },
+          { name: 'categoryId', in: 'query', required: false, schema: { type: 'integer' } },
+          {
+            name: 'includeDrafts',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['true', 'false'] },
+            description: 'Authors only; ignored without kb:manage'
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Matching articles, most-read first',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '400': {
+            description: 'Validation failed',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      },
+      post: {
+        summary: 'Create a knowledge base article',
+        description: 'Requires kb:manage. Created as a draft unless isPublished is true.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', maxLength: 255 },
+                  body: { type: 'string' },
+                  categoryId: { type: 'integer' },
+                  summary: { type: 'string', maxLength: 500 },
+                  isPublished: { type: 'boolean' }
+                },
+                required: ['title', 'body', 'categoryId']
+              }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'Article created',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '400': {
+            description: 'Validation failed',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '404': {
+            description: 'Category not found',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/kb/articles/{id}': {
+      get: {
+        summary: 'Read one knowledge base article',
+        description:
+          'Requires kb:read. Increments the view counter on a published read. An unpublished draft is a 404 unless the caller holds kb:manage.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': {
+            description: 'The article, including its markdown body',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '404': {
+            description: 'Article not found, or an unpublished draft',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      },
+      patch: {
+        summary: 'Update, publish, or unpublish a knowledge base article',
+        description: 'Requires kb:manage. Send only the fields to change.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', maxLength: 255 },
+                  body: { type: 'string' },
+                  categoryId: { type: 'integer' },
+                  summary: { type: 'string', maxLength: 500, nullable: true },
+                  isPublished: { type: 'boolean' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Article updated',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '400': {
+            description: 'Validation failed',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '404': {
+            description: 'Article or category not found',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/tickets/{id}/feedback': {
+      get: {
+        summary: 'Get the customer satisfaction feedback left on a ticket',
+        description:
+          'Requires `feedback:read`. A CUSTOMER-role token may only read feedback on its own ticket. Returns `data: null` when the ticket has not been rated.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': {
+            description: 'Feedback, or null when the ticket has not been rated',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '404': {
+            description: 'Ticket not found',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      },
+      post: {
+        summary: 'Submit customer satisfaction feedback on a resolved ticket',
+        description:
+          'Requires `feedback:write` and a customer-linked account. The ticket must be Resolved or Closed and may only be rated once.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  rating: { type: 'integer', minimum: 1, maximum: 5 },
+                  comment: { type: 'string', maxLength: 1000 }
+                },
+                required: ['rating']
+              }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'Feedback submitted',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '400': {
+            description: 'Validation failed, or the ticket is not Resolved/Closed',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '404': {
+            description: 'Ticket not found',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '409': {
+            description: 'Feedback already submitted for this ticket',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/customers/portal/tickets': {
+      get: {
+        summary: "List the signed-in customer's own tickets",
+        description:
+          'Customer portal. Requires `tickets:read` and a customer-linked account; staff tokens are refused.',
+        responses: {
+          '200': {
+            description: "The caller's tickets, newest first, each with its feedback summary",
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Not a customer account',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
+    '/customers/portal/summary': {
+      get: {
+        summary: "Ticket counters for the signed-in customer's portal dashboard",
+        responses: {
+          '200': {
+            description: 'Total, open, pending, resolved, and awaiting-feedback counts',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          },
+          '403': {
+            description: 'Not a customer account',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } }
+          }
+        }
+      }
+    },
     '/health': {
       get: {
         summary: 'API liveness check',

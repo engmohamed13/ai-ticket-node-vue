@@ -15,11 +15,20 @@ import {
   listTicketsHandler,
   updateTicketHandler
 } from '../controllers/ticket.controller';
+import {
+  getTicketFeedbackHandler,
+  submitTicketFeedbackHandler
+} from '../controllers/feedback.controller';
 import { requirePermission } from '../middleware/auth.middleware';
 import { uploadTicketAttachment } from '../middleware/upload.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { idParamSchema } from '../schemas/idParam.schema';
-import { TICKET_PRIORITIES, TICKET_STATUSES } from '../tickets/types';
+import {
+  FEEDBACK_RATING_MAX,
+  FEEDBACK_RATING_MIN,
+  TICKET_PRIORITIES,
+  TICKET_STATUSES
+} from '../tickets/types';
 
 const booleanFlag = z.enum(['true', 'false']).transform((value) => value === 'true');
 
@@ -73,6 +82,13 @@ const assignTicketSchema = z
   .strict();
 
 const addCommentSchema = z.object({ body: z.string().trim().min(1) }).strict();
+
+const submitFeedbackSchema = z
+  .object({
+    rating: z.coerce.number().int().min(FEEDBACK_RATING_MIN).max(FEEDBACK_RATING_MAX),
+    comment: z.string().trim().max(1000).optional()
+  })
+  .strict();
 
 const attachmentParamsSchema = z
   .object({
@@ -156,6 +172,21 @@ router.delete(
   requirePermission('tickets:manage'),
   validate({ params: attachmentParamsSchema }),
   deleteTicketAttachmentHandler
+);
+
+// Feedback is the one ticket sub-resource a customer writes. `feedback:write` is held by the
+// CUSTOMER role only; the handler additionally refuses any token with no linked customer.
+router.get(
+  '/:id/feedback',
+  requirePermission('feedback:read'),
+  validate({ params: idParamSchema }),
+  getTicketFeedbackHandler
+);
+router.post(
+  '/:id/feedback',
+  requirePermission('feedback:write'),
+  validate({ params: idParamSchema, body: submitFeedbackSchema }),
+  submitTicketFeedbackHandler
 );
 
 export default router;

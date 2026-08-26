@@ -168,6 +168,41 @@ export interface UpdateTicketPayload {
   resolutionTimeMinutes?: number;
 }
 
+/**
+ * The satisfaction rating a customer leaves once a ticket is Resolved or Closed (Story 16).
+ * One per ticket; never edited once submitted.
+ */
+export interface TicketFeedback {
+  id: number;
+  rating: number;
+  comment: string | null;
+  ticketId: number;
+  customerId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const FEEDBACK_RATING_MIN = 1;
+export const FEEDBACK_RATING_MAX = 5;
+
+export interface SubmitFeedbackPayload {
+  rating: number;
+  comment?: string;
+}
+
+/** A `Ticket` as the customer portal list returns it: category embedded, feedback summarised. */
+export interface PortalTicket extends Ticket {
+  feedback: { id: number; rating: number; createdAt: string } | null;
+}
+
+export interface CustomerPortalSummary {
+  totalTickets: number;
+  openTickets: number;
+  pendingTickets: number;
+  resolvedTickets: number;
+  awaitingFeedback: number;
+}
+
 export interface Interaction {
   id: number;
   channel: Channel;
@@ -190,6 +225,122 @@ export interface CreateInteractionPayload {
   body: string;
 }
 
+/** Management dashboard payloads, hand-copied from the backend DTOs (Story 21). */
+export interface TicketsSummary {
+  totalTickets: number;
+  openTickets: number;
+  pendingTickets: number;
+  resolvedTickets: number;
+  overdueTickets: number;
+  unassignedTickets: number;
+  byStatus: { status: TicketStatus; count: number }[];
+  byPriority: { priority: TicketPriority; count: number }[];
+}
+
+export interface CustomerSatisfaction {
+  /** `null`, not 0, when nothing has been rated yet. */
+  averageRating: number | null;
+  totalFeedback: number;
+  ratingBreakdown: { rating: number; count: number }[];
+}
+
+export interface TicketTrendPoint {
+  /** ISO week key, e.g. "2026-W35". */
+  week: string;
+  created: number;
+  resolved: number;
+}
+
+export interface AgentWorkloadRow {
+  agentId: number;
+  agentName: string;
+  totalAssigned: number;
+  open: number;
+  pending: number;
+  resolved: number;
+  overdue: number;
+}
+
+/**
+ * In-app notification vocabulary, hand-copied from `backend/src/notifications/types.ts` —
+ * there is no shared package between `backend/` and `frontend/`, the same relationship
+ * TICKET_STATUSES already has. `src/tests/notificationContract.spec.ts` guards the copy.
+ */
+export const NOTIFICATION_TYPES = [
+  'ticket_assigned',
+  'ticket_status_changed',
+  'ticket_comment',
+  'ticket_overdue',
+  'feedback_received'
+] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+export interface AppNotification {
+  id: number;
+  userId: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  isRead: boolean;
+  relatedTicketId: number | null;
+  relatedCustomerId: number | null;
+  relatedFeedbackId: number | null;
+  createdAt: string;
+}
+
+export interface NotificationInbox {
+  items: AppNotification[];
+  unreadCount: number;
+}
+
+/** Knowledge base vocabulary, hand-copied from the backend DTOs (Story 18). */
+export interface KbCategory {
+  id: number;
+  name: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface KbArticleAuthor {
+  id: number;
+  name: string;
+}
+
+/** A search-result row. The markdown `body` is deliberately absent — only the detail read has it. */
+export interface KbArticleSummary {
+  id: number;
+  title: string;
+  summary: string | null;
+  categoryId: number;
+  category: KbCategory;
+  isPublished: boolean;
+  viewCount: number;
+  authorId: number;
+  author: KbArticleAuthor;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KbArticle extends KbArticleSummary {
+  body: string;
+}
+
+export interface CreateKbArticlePayload {
+  title: string;
+  body: string;
+  categoryId: number;
+  summary?: string;
+  isPublished?: boolean;
+}
+
+export interface UpdateKbArticlePayload {
+  title?: string;
+  body?: string;
+  categoryId?: number;
+  summary?: string | null;
+  isPublished?: boolean;
+}
+
 export const PERMISSIONS = [
   'users:read',
   'users:manage',
@@ -204,6 +355,10 @@ export const PERMISSIONS = [
   'interactions:read',
   'interactions:create',
   'interactions:associate',
+  'feedback:read',
+  'feedback:write',
+  'kb:read',
+  'kb:manage',
   'reports:read'
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];

@@ -30,3 +30,10 @@ export type TicketCategoryPredefined = (typeof TICKET_CATEGORIES_PREDEFINED)[num
 /** Default SLA targets applied when a ticket is created without explicit values. */
 export const DEFAULT_RESPONSE_TIME_MINUTES = 30;
 export const DEFAULT_RESOLUTION_TIME_MINUTES = 480;
+
+/**
+ * Customer satisfaction rating bounds (Story 16). Stored as a plain Int on `ticket_feedback`
+ * and validated in the API layer, the same convention TICKET_STATUSES follows for `status`.
+ */
+export const FEEDBACK_RATING_MIN = 1;
+export const FEEDBACK_RATING_MAX = 5;

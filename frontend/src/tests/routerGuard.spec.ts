@@ -106,4 +106,68 @@ describe('router navigation guard', () => {
 
     expect(router.currentRoute.value.name).toBe('not-found');
   });
+
+  it('lets a CUSTOMER-role user into the portal', async () => {
+    seedSession(['tickets:read'], 'CUSTOMER');
+
+    await goto('/portal');
+
+    expect(router.currentRoute.value.name).toBe('portal');
+  });
+
+  it('sends a staff user holding tickets:read to forbidden on a customerOnly route', async () => {
+    seedSession(['tickets:read', 'tickets:manage'], 'SUPPORT_AGENT');
+
+    await goto('/portal');
+
+    expect(router.currentRoute.value.name).toBe('forbidden');
+  });
+
+  it('applies the customerOnly gate to the portal ticket detail route too', async () => {
+    seedSession(['tickets:read'], 'CRM_MANAGER');
+
+    await goto('/portal/tickets/1');
+
+    expect(router.currentRoute.value.name).toBe('forbidden');
+  });
+
+  it('lets any role holding kb:read browse the knowledge base', async () => {
+    seedSession(['kb:read'], 'CUSTOMER');
+
+    await goto('/kb');
+
+    expect(router.currentRoute.value.name).toBe('kb');
+  });
+
+  it('keeps a reader without kb:manage out of the authoring screen', async () => {
+    seedSession(['kb:read'], 'CUSTOMER');
+
+    await goto('/kb/manage');
+
+    expect(router.currentRoute.value.name).toBe('forbidden');
+  });
+
+  it('lets an author into the authoring screen', async () => {
+    seedSession(['kb:read', 'kb:manage'], 'SUPPORT_AGENT');
+
+    await goto('/kb/manage');
+
+    expect(router.currentRoute.value.name).toBe('kb-manage');
+  });
+
+  it('lets a reports:read holder into the management dashboard', async () => {
+    seedSession(['reports:read'], 'CRM_MANAGER');
+
+    await goto('/dashboard/management');
+
+    expect(router.currentRoute.value.name).toBe('management-dashboard');
+  });
+
+  it('keeps an agent without reports:read out of the management dashboard', async () => {
+    seedSession(['tickets:read', 'tickets:manage'], 'SUPPORT_AGENT');
+
+    await goto('/dashboard/management');
+
+    expect(router.currentRoute.value.name).toBe('forbidden');
+  });
 });

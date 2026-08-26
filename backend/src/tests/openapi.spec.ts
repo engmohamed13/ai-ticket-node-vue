@@ -44,6 +44,45 @@ describe('openApiDocument', () => {
     expect(openApiDocument.components.schemas.TicketAttachment).toBeDefined();
   });
 
+  it('documents customer feedback and portal endpoints', () => {
+    expect(openApiDocument.paths['/tickets/{id}/feedback'].get).toBeDefined();
+    expect(openApiDocument.paths['/tickets/{id}/feedback'].post).toBeDefined();
+    expect(openApiDocument.paths['/customers/portal/tickets']).toBeDefined();
+    expect(openApiDocument.paths['/customers/portal/summary']).toBeDefined();
+    expect(openApiDocument.components.schemas.TicketFeedback).toBeDefined();
+    expect(openApiDocument.components.schemas.CustomerPortalSummary).toBeDefined();
+  });
+
+  it('documents knowledge base endpoints', () => {
+    expect(openApiDocument.paths['/kb/categories']).toBeDefined();
+    expect(openApiDocument.paths['/kb/articles'].get).toBeDefined();
+    expect(openApiDocument.paths['/kb/articles'].post).toBeDefined();
+    expect(openApiDocument.paths['/kb/articles/{id}'].get).toBeDefined();
+    expect(openApiDocument.paths['/kb/articles/{id}'].patch).toBeDefined();
+    expect(openApiDocument.components.schemas.KbArticle).toBeDefined();
+    expect(openApiDocument.components.schemas.KbCategory).toBeDefined();
+  });
+
+  it('documents notification endpoints', () => {
+    expect(openApiDocument.paths['/notifications'].get).toBeDefined();
+    expect(openApiDocument.paths['/notifications/read-all'].patch).toBeDefined();
+    expect(openApiDocument.paths['/notifications/{id}/read'].patch).toBeDefined();
+    expect(openApiDocument.paths['/notifications/{id}'].delete).toBeDefined();
+    expect(openApiDocument.components.schemas.Notification).toBeDefined();
+  });
+
+  it('documents management dashboard endpoints', () => {
+    expect(openApiDocument.paths['/dashboard/tickets-summary'].get).toBeDefined();
+    expect(openApiDocument.paths['/dashboard/customer-satisfaction'].get).toBeDefined();
+    expect(openApiDocument.paths['/dashboard/ticket-trends'].get).toBeDefined();
+    expect(openApiDocument.paths['/dashboard/agent-workload'].get).toBeDefined();
+    expect(openApiDocument.paths['/dashboard/kb-top-articles'].get).toBeDefined();
+    expect(openApiDocument.components.schemas.TicketsSummary).toBeDefined();
+    expect(openApiDocument.components.schemas.CustomerSatisfaction).toBeDefined();
+    expect(openApiDocument.components.schemas.TicketTrendPoint).toBeDefined();
+    expect(openApiDocument.components.schemas.AgentWorkloadRow).toBeDefined();
+  });
+
   it('documents interaction endpoints', () => {
     expect(openApiDocument.paths['/interactions']).toBeDefined();
     expect(openApiDocument.paths['/interactions/{id}']).toBeDefined();

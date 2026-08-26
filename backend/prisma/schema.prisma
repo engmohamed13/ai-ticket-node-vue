@@ -40,8 +40,10 @@ model Customer {
   tickets      Ticket[]
   interactions Interaction[]
   users        User[]
-  notes        CustomerNote[]
-  attachments  CustomerAttachment[]
+  notes         CustomerNote[]
+  attachments   CustomerAttachment[]
+  feedback      TicketFeedback[]
+  notifications Notification[]
 
   @@map("customers")
 }
@@ -111,6 +113,8 @@ model Ticket {
   interactions          Interaction[]
   comments              TicketComment[]
   attachments           TicketAttachment[]
+  feedback              TicketFeedback?
+  notifications         Notification[]
 
   @@index([customerId])
   @@index([categoryId])
@@ -168,6 +172,93 @@ model TicketAttachment {
 
   @@index([ticketId])
   @@map("ticket_attachments")
+}
+
+/// A customer's satisfaction rating (1-5) and optional comment, left once a ticket reaches a
+/// closed status. One per ticket (`ticketId` is unique) — the customer who owns the ticket is
+/// the only author, and the API layer never lets it be edited or deleted once submitted.
+/// `rating` is a plain Int validated in the API layer against FEEDBACK_RATING_MIN/MAX in
+/// `src/tickets/types.ts`, the same convention Ticket.status follows.
+model TicketFeedback {
+  id         Int      @id @default(autoincrement())
+  rating     Int
+  comment    String?
+  ticketId   Int      @unique
+  customerId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ticket        Ticket         @relation(fields: [ticketId], references: [id])
+  customer      Customer       @relation(fields: [customerId], references: [id])
+  notifications Notification[]
+
+  @@index([customerId])
+  @@map("ticket_feedback")
+}
+
+/// An in-app notification addressed to one user (Story 20). Persisted, unlike the transient
+/// client-side toasts Story 15 produced, so an agent who was offline still sees what happened.
+/// `type` is a plain String validated in application code against NOTIFICATION_TYPES in
+/// `src/notifications/types.ts`, the same convention Ticket.status follows.
+/// The related-entity columns are nullable pointers used to build the "open it" link.
+model Notification {
+  id                Int             @id @default(autoincrement())
+  userId            Int
+  type              String
+  title             String
+  message           String
+  isRead            Boolean         @default(false)
+  relatedTicketId   Int?
+  relatedCustomerId Int?
+  relatedFeedbackId Int?
+  createdAt         DateTime        @default(now())
+
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticket            Ticket?         @relation(fields: [relatedTicketId], references: [id])
+  customer          Customer?       @relation(fields: [relatedCustomerId], references: [id])
+  feedback          TicketFeedback? @relation(fields: [relatedFeedbackId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([relatedTicketId])
+  @@map("notifications")
+}
+
+/// A knowledge base category (e.g. "Getting Started", "Billing"). Owned by the organisation —
+/// all articles share one global list, exactly like TicketCategory above.
+model KbCategory {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  description String?
+  createdAt   DateTime    @default(now())
+
+  articles    KbArticle[]
+
+  @@map("kb_categories")
+}
+
+/// A help article or FAQ entry authored by an agent. `body` is markdown, rendered by the
+/// frontend. `isPublished` is the visibility switch: an unpublished draft is only ever
+/// returned to a caller holding `kb:manage`. `viewCount` is incremented on each published
+/// read and is what the management dashboard ranks articles by (Story 21).
+model KbArticle {
+  id          Int        @id @default(autoincrement())
+  title       String
+  summary     String?
+  body        String
+  categoryId  Int
+  isPublished Boolean    @default(false)
+  viewCount   Int        @default(0)
+  authorId    Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  category    KbCategory @relation(fields: [categoryId], references: [id])
+  author      User       @relation(fields: [authorId], references: [id])
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([isPublished])
+  @@map("kb_articles")
 }
 
 /// A single customer interaction on one of the supported communication channels.
@@ -292,6 +383,8 @@ model User {
   assignedTickets     Ticket[]
   ticketComments      TicketComment[]
   ticketAttachments   TicketAttachment[]
+  kbArticles          KbArticle[]
+  notifications       Notification[]
 
   @@index([roleId])
   @@index([departmentId])

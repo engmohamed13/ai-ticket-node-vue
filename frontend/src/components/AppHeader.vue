@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHealthStore } from '../stores/health';
 import { useAuthStore } from '../stores/auth';
+import NotificationCenter from './NotificationCenter.vue';
 import StatusBadge from './ui/StatusBadge.vue';
 
 defineEmits<{ 'toggle-nav': [] }>();
@@ -56,6 +57,7 @@ const onLogout = async (): Promise<void> => {
       </StatusBadge>
     </div>
     <div v-if="auth.isAuthenticated" class="header-user" data-testid="header-user">
+      <NotificationCenter />
       <span class="user-avatar" aria-hidden="true">{{ initials }}</span>
       <span class="user-meta">
         <span class="user-name">{{ auth.user?.name }}</span>

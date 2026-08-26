@@ -7,6 +7,7 @@ import {
   DEFAULT_RESPONSE_TIME_MINUTES
 } from '../tickets/types';
 import type { TicketPriority, TicketStatus } from '../tickets/types';
+import { notifyOtherThan } from './notification.service';
 import { AppError } from '../utils/AppError';
 
 export interface ListTicketsFilter {
@@ -201,13 +202,13 @@ const slaStamps = (
   return stamps;
 };
 
-export const updateTicket = async (id: number, input: UpdateTicketInput) => {
+export const updateTicket = async (id: number, input: UpdateTicketInput, actorId?: number) => {
   const current = await getTicketRowOrThrow(id);
   if (input.categoryId !== undefined && input.categoryId !== null) {
     await assertCategoryExists(input.categoryId);
   }
 
-  return prisma.ticket.update({
+  const updated = await prisma.ticket.update({
     where: { id },
     data: {
       ...(input.subject === undefined ? {} : { subject: input.subject }),
@@ -222,18 +223,45 @@ export const updateTicket = async (id: number, input: UpdateTicketInput) => {
     },
     include: ticketListInclude
   });
+
+  // Only a real transition is worth telling the assignee about — re-saving the same status,
+  // or editing only the subject, is not a status change.
+  if (input.status !== undefined && input.status !== current.status) {
+    await notifyOtherThan(updated.assignedToUserId, actorId ?? -1, {
+      type: 'ticket_status_changed',
+      title: `Ticket #${updated.id} is now ${updated.status}`,
+      message: `"${updated.subject}" moved from ${current.status} to ${updated.status}.`,
+      relatedTicketId: updated.id,
+      relatedCustomerId: updated.customerId
+    });
+  }
+
+  return updated;
 };
 
 /** `assignedToUserId: null` unassigns the ticket — that is a reassignment, not a validation error. */
-export const assignTicket = async (id: number, assignedToUserId: number | null) => {
-  await getTicketRowOrThrow(id);
+export const assignTicket = async (id: number, assignedToUserId: number | null, actorId?: number) => {
+  const current = await getTicketRowOrThrow(id);
   if (assignedToUserId !== null) await assertAssignableUser(assignedToUserId);
 
-  return prisma.ticket.update({
+  const updated = await prisma.ticket.update({
     where: { id },
     data: { assignedToUserId },
     include: ticketListInclude
   });
+
+  // Claiming a ticket for yourself needs no notification; being handed one does.
+  if (assignedToUserId !== null && assignedToUserId !== current.assignedToUserId) {
+    await notifyOtherThan(assignedToUserId, actorId ?? -1, {
+      type: 'ticket_assigned',
+      title: `Ticket #${updated.id} was assigned to you`,
+      message: `"${updated.subject}" is now yours, at ${updated.priority} priority.`,
+      relatedTicketId: updated.id,
+      relatedCustomerId: updated.customerId
+    });
+  }
+
+  return updated;
 };
 
 const commentInclude = { author: { select: { id: true, name: true } } } as const;
@@ -260,6 +288,16 @@ export const addTicketComment = async (ticketId: number, authorId: number, body:
   if (Object.keys(stamps).length > 0) {
     await prisma.ticket.update({ where: { id: ticketId }, data: stamps });
   }
+
+  // The assignee is told about everyone's comments but their own.
+  const excerpt = body.length > 120 ? `${body.slice(0, 120)}…` : body;
+  await notifyOtherThan(current.assignedToUserId, authorId, {
+    type: 'ticket_comment',
+    title: `New comment on ticket #${current.id}`,
+    message: comment.author ? `${comment.author.name}: ${excerpt}` : excerpt,
+    relatedTicketId: current.id,
+    relatedCustomerId: current.customerId
+  });
 
   return comment;
 };

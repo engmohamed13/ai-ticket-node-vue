@@ -1,39 +1,61 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useNotificationsStore } from '../stores/notifications';
-import type { NotificationKind } from '../stores/notifications';
+import { NOTIFICATION_ICONS } from './notificationIcons';
 
 /**
- * Renders the newest few unread in-app notifications as dismissible toasts. The store is
- * populated by the tickets store's poll diff — see stores/notifications.ts for why this is
- * client-side polling rather than a server push.
+ * Renders notifications that arrived while this session has been open as dismissible toasts.
+ * The store decides what counts as an arrival — the first poll only seeds a baseline, so a
+ * returning user is not buried under their backlog. Everything is still in the notification
+ * centre in the header; dismissing a toast only hides the toast.
  */
-const MAX_VISIBLE = 3;
-
 const notifications = useNotificationsStore();
+const router = useRouter();
 
-const visible = computed(() => notifications.items.filter((entry) => !entry.read).slice(0, MAX_VISIBLE));
-
-const ICONS: Record<NotificationKind, string> = {
-  assignment: 'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM19 8v6M22 11h-6',
-  status: 'M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11',
-  comment: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'
+const onOpen = async (id: number, ticketId: number | null): Promise<void> => {
+  notifications.dismissToast(id);
+  await notifications.markRead(id);
+  if (ticketId !== null) await router.push({ name: 'ticket-detail', params: { id: ticketId } });
 };
 </script>
 
 <template>
-  <div v-if="visible.length > 0" class="toast-stack" role="status" aria-live="polite" data-testid="notification-toasts">
-    <article v-for="entry in visible" :key="entry.id" class="toast" data-testid="notification-toast">
+  <div
+    v-if="notifications.toasts.length > 0"
+    class="toast-stack"
+    role="status"
+    aria-live="polite"
+    data-testid="notification-toasts"
+  >
+    <article v-for="entry in notifications.toasts" :key="entry.id" class="toast" data-testid="notification-toast">
       <svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path :d="ICONS[entry.kind]" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path
+          :d="NOTIFICATION_ICONS[entry.type]"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
-      <p class="toast-message">{{ entry.message }}</p>
+      <div class="toast-body">
+        <p class="toast-title">{{ entry.title }}</p>
+        <p class="toast-message">{{ entry.message }}</p>
+        <button
+          v-if="entry.relatedTicketId !== null"
+          class="toast-link"
+          type="button"
+          data-testid="open-notification-button"
+          @click="onOpen(entry.id, entry.relatedTicketId)"
+        >
+          Open ticket #{{ entry.relatedTicketId }}
+        </button>
+      </div>
       <button
         class="toast-dismiss"
         type="button"
         aria-label="Dismiss notification"
         data-testid="dismiss-notification-button"
-        @click="notifications.dismiss(entry.id)"
+        @click="notifications.dismissToast(entry.id)"
       >
         ×
       </button>
@@ -71,12 +93,38 @@ const ICONS: Record<NotificationKind, string> = {
   color: var(--color-primary);
 }
 
-.toast-message {
+.toast-body {
   flex: 1;
+  min-width: 0;
+}
+
+.toast-title {
   margin: 0;
   font-size: var(--font-sm);
+  font-weight: 600;
   color: var(--text-main);
+}
+
+.toast-message {
+  margin: 0.2rem 0 0;
+  font-size: var(--font-sm);
+  color: var(--text-muted);
   line-height: 1.45;
+}
+
+.toast-link {
+  margin-top: 0.35rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--color-primary);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toast-link:hover {
+  text-decoration: underline;
 }
 
 .toast-dismiss {

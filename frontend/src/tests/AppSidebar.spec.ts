@@ -5,6 +5,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import AppSidebar from '../components/AppSidebar.vue';
 import { useAuthStore } from '../stores/auth';
 import CommunicationsView from '../views/CommunicationsView.vue';
+import CustomerPortalView from '../views/CustomerPortalView.vue';
 import DashboardView from '../views/DashboardView.vue';
 import ForbiddenView from '../views/ForbiddenView.vue';
 import LoginView from '../views/LoginView.vue';
@@ -32,6 +33,12 @@ const buildRouter = () =>
         name: 'roles',
         component: RolesView,
         meta: { navLabel: 'Roles & Permissions', permission: 'roles:read' }
+      },
+      {
+        path: '/portal',
+        name: 'portal',
+        component: CustomerPortalView,
+        meta: { navLabel: 'My Tickets', permission: 'tickets:read', customerOnly: true }
       },
       { path: '/forbidden', name: 'forbidden', component: ForbiddenView },
       { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView }
@@ -132,5 +139,59 @@ describe('AppSidebar', () => {
     const targets = wrapper.findAll('[data-testid="sidebar-link"]').map((link) => link.attributes('href'));
     expect(targets.some((href) => href?.includes('login'))).toBe(false);
     expect(targets.some((href) => href?.includes('forbidden'))).toBe(false);
+  });
+
+  it('lists My Tickets for a CUSTOMER-role user', async () => {
+    const router = buildRouter();
+    await router.push('/');
+    await router.isReady();
+
+    const auth = useAuthStore();
+    auth.token = 'jwt';
+    auth.user = {
+      id: 3,
+      name: 'Demo Customer',
+      email: 'demo.customer@example.com',
+      isActive: true,
+      roleKey: 'CUSTOMER',
+      roleName: 'Customer',
+      permissions: ['tickets:read', 'interactions:read', 'feedback:read', 'feedback:write'],
+      customerId: 10,
+      department: null,
+      branch: null
+    };
+
+    const wrapper = mount(AppSidebar, { global: { plugins: [router] } });
+    await flushPromises();
+
+    const labels = wrapper.findAll('[data-testid="sidebar-link"]').map((link) => link.text());
+    expect(labels).toContain('My Tickets');
+  });
+
+  it('hides My Tickets from staff even though they hold tickets:read', async () => {
+    const router = buildRouter();
+    await router.push('/');
+    await router.isReady();
+
+    const auth = useAuthStore();
+    auth.token = 'jwt';
+    auth.user = {
+      id: 2,
+      name: 'Agent',
+      email: 'agent@crm.local',
+      isActive: true,
+      roleKey: 'SUPPORT_AGENT',
+      roleName: 'Support Agent',
+      permissions: ['tickets:read', 'tickets:manage', 'interactions:read'],
+      customerId: null,
+      department: null,
+      branch: null
+    };
+
+    const wrapper = mount(AppSidebar, { global: { plugins: [router] } });
+    await flushPromises();
+
+    const labels = wrapper.findAll('[data-testid="sidebar-link"]').map((link) => link.text());
+    expect(labels).not.toContain('My Tickets');
   });
 });

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { useTicketsStore } from '../stores/tickets';
-import { useNotificationsStore } from '../stores/notifications';
 import { useAuthStore } from '../stores/auth';
 import { fetchTicketCategories, fetchTickets } from '../services/tickets.service';
 import type { Ticket } from '../types';
@@ -128,37 +127,9 @@ describe('tickets store', () => {
     expect(store.counts.unassigned).toBe(1);
   });
 
-  it('raises no notification on the first, non-silent load', async () => {
-    signInAs(7);
-    mockedFetchTickets.mockResolvedValue([ticket({ id: 1, assignedToUserId: 7 })]);
-    const store = useTicketsStore();
-    const notifications = useNotificationsStore();
-
-    await store.loadTickets();
-
-    expect(notifications.items).toHaveLength(0);
-  });
-
-  it('notifies when a background poll shows a ticket newly assigned to me', async () => {
+  it('refreshes the visible list on a background poll', async () => {
     signInAs(7);
     const store = useTicketsStore();
-    const notifications = useNotificationsStore();
-
-    mockedFetchTickets.mockResolvedValue([ticket({ id: 1, assignedToUserId: null })]);
-    await store.loadTickets();
-
-    mockedFetchTickets.mockResolvedValue([ticket({ id: 1, assignedToUserId: 7 })]);
-    await store.loadTickets({ silent: true });
-
-    expect(notifications.items).toHaveLength(1);
-    expect(notifications.items[0]).toMatchObject({ kind: 'assignment', ticketId: 1 });
-    expect(notifications.items[0].message).toContain('assigned to you');
-  });
-
-  it('notifies when a background poll shows a status change', async () => {
-    signInAs(7);
-    const store = useTicketsStore();
-    const notifications = useNotificationsStore();
 
     mockedFetchTickets.mockResolvedValue([ticket({ id: 1, status: 'Open' })]);
     await store.loadTickets();
@@ -166,23 +137,17 @@ describe('tickets store', () => {
     mockedFetchTickets.mockResolvedValue([ticket({ id: 1, status: 'Resolved' })]);
     await store.loadTickets({ silent: true });
 
-    expect(notifications.items).toHaveLength(1);
-    expect(notifications.items[0]).toMatchObject({ kind: 'status' });
-    expect(notifications.items[0].message).toContain('Resolved');
+    expect(store.tickets[0].status).toBe('Resolved');
   });
 
-  it('does not announce a ticket it is seeing for the first time on a poll', async () => {
+  it('leaves the loading flag alone on a silent poll', async () => {
     signInAs(7);
     const store = useTicketsStore();
-    const notifications = useNotificationsStore();
-
     mockedFetchTickets.mockResolvedValue([ticket({ id: 1 })]);
-    await store.loadTickets();
 
-    mockedFetchTickets.mockResolvedValue([ticket({ id: 1 }), ticket({ id: 2, status: 'Pending' })]);
     await store.loadTickets({ silent: true });
 
-    expect(notifications.items).toHaveLength(0);
+    expect(store.loading).toBe(false);
   });
 
   it('keeps the visible list when a background poll fails', async () => {
