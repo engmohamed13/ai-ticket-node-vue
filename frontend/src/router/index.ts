@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import CommunicationsView from '../views/CommunicationsView.vue';
+import CustomerDetailView from '../views/CustomerDetailView.vue';
+import CustomersView from '../views/CustomersView.vue';
 import DashboardView from '../views/DashboardView.vue';
 import ForbiddenView from '../views/ForbiddenView.vue';
 import LoginView from '../views/LoginView.vue';
@@ -47,6 +49,18 @@ const router = createRouter({
       name: 'communications',
       component: CommunicationsView,
       meta: { navLabel: 'Communications', permission: 'interactions:read' }
+    },
+    {
+      path: '/customers',
+      name: 'customers',
+      component: CustomersView,
+      meta: { navLabel: 'Customers', permission: 'customers:read' }
+    },
+    {
+      path: '/customers/:id',
+      name: 'customer-detail',
+      component: CustomerDetailView,
+      meta: { permission: 'customers:read' }
     },
     {
       path: '/users',

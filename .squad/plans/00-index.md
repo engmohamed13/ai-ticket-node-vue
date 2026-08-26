@@ -7,3 +7,4 @@ One row per feature folder under `.squad/plans/`. `NN` continues as a global exe
 | projectsetup | [projectsetup/00-overview.md](projectsetup/00-overview.md) | 01–03 |
 | communicationchannels | [communicationchannels/00-overview.md](communicationchannels/00-overview.md) | 04–06 |
 | authenticationandusermanagement | [authenticationandusermanagement/00-overview.md](authenticationandusermanagement/00-overview.md) | 07–09 |
+| customermanagement | [customermanagement/00-overview.md](customermanagement/00-overview.md) | 10–12 |

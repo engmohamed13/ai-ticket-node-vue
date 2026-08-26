@@ -17,8 +17,14 @@ describe('openApiDocument', () => {
 
   it('documents customer endpoints', () => {
     expect(openApiDocument.paths['/customers']).toBeDefined();
+    expect(openApiDocument.paths['/customers/{id}']).toBeDefined();
     expect(openApiDocument.paths['/customers/{id}/timeline']).toBeDefined();
+    expect(openApiDocument.paths['/customers/{id}/notes']).toBeDefined();
+    expect(openApiDocument.paths['/customers/{id}/attachments']).toBeDefined();
+    expect(openApiDocument.paths['/customers/{id}/attachments/{attachmentId}']).toBeDefined();
     expect(openApiDocument.components.schemas.Customer).toBeDefined();
+    expect(openApiDocument.components.schemas.CustomerNote).toBeDefined();
+    expect(openApiDocument.components.schemas.CustomerAttachment).toBeDefined();
   });
 
   it('documents ticket endpoints', () => {

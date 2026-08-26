@@ -26,6 +26,16 @@ describe('router', () => {
     expect(router.resolve('/users').name).toBe('users');
   });
 
+  it('resolves /customers to the customers route', () => {
+    expect(router.resolve('/customers').name).toBe('customers');
+  });
+
+  it('resolves /customers/42 to the customer-detail route', () => {
+    const resolved = router.resolve('/customers/42');
+    expect(resolved.name).toBe('customer-detail');
+    expect(resolved.params.id).toBe('42');
+  });
+
   it('resolves /roles to the roles route', () => {
     expect(router.resolve('/roles').name).toBe('roles');
   });

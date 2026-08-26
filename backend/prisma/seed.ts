@@ -24,7 +24,16 @@ const main = async (): Promise<void> => {
   const customer = await prisma.customer.upsert({
     where: { email: 'demo.customer@example.com' },
     update: {},
-    create: { name: 'Demo Customer', email: 'demo.customer@example.com', phone: '+1-555-0100' }
+    create: {
+      name: 'Demo Customer',
+      email: 'demo.customer@example.com',
+      phone: '+1-555-0100',
+      company: 'Acme Logistics',
+      address: '400 Market Street',
+      city: 'San Francisco',
+      country: 'USA',
+      status: 'ACTIVE'
+    }
   });
 
   let ticket = await prisma.ticket.findFirst({
@@ -193,8 +202,20 @@ const main = async (): Promise<void> => {
     });
   }
 
+  const supportAgent = await prisma.user.findUniqueOrThrow({ where: { email: 'agent@crm.local' } });
+  const existingNote = await prisma.customerNote.findFirst({ where: { customerId: customer.id } });
+  if (!existingNote) {
+    await prisma.customerNote.create({
+      data: {
+        customerId: customer.id,
+        authorId: supportAgent.id,
+        body: 'Called about the login issue; advised the customer to reset their password via the email on file.'
+      }
+    });
+  }
+
   console.log(
-    'Seed complete: system_info, 1 customer, 1 ticket, 5 interactions (one per channel), ' +
+    'Seed complete: system_info, 1 customer, 1 ticket, 5 interactions (one per channel), 1 customer note, ' +
       `2 branches, 3 departments, ${PERMISSIONS.length} permissions, ${ROLES.length} roles, ` +
       `${demoUsers.length} demo users (password: ${DEMO_PASSWORD})`
   );

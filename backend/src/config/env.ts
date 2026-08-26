@@ -17,7 +17,9 @@ const envSchema = z.object({
   JWT_SECRET: z
     .string()
     .min(32, 'JWT_SECRET must be at least 32 characters — generate one with `openssl rand -base64 48`'),
-  JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(28800)
+  JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(28800),
+  UPLOAD_DIR: z.string().min(1).default('uploads'),
+  MAX_ATTACHMENT_SIZE_BYTES: z.coerce.number().int().positive().default(10 * 1024 * 1024)
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -30,11 +30,50 @@ export type Channel = (typeof CHANNELS)[number];
 export const INTERACTION_DIRECTIONS = ['INBOUND', 'OUTBOUND'] as const;
 export type InteractionDirection = (typeof INTERACTION_DIRECTIONS)[number];
 
+export const CUSTOMER_STATUSES = ['ACTIVE', 'INACTIVE', 'PROSPECT', 'ARCHIVED'] as const;
+export type CustomerStatus = (typeof CUSTOMER_STATUSES)[number];
+
 export interface Customer {
   id: number;
   name: string;
   email: string;
   phone: string | null;
+  company: string | null;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  status: CustomerStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerFormPayload {
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  status?: CustomerStatus;
+}
+
+export interface CustomerNote {
+  id: number;
+  body: string;
+  customerId: number;
+  authorId: number;
+  author: { id: number; name: string };
+  createdAt: string;
+}
+
+export interface CustomerAttachment {
+  id: number;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  customerId: number;
+  uploadedById: number;
   createdAt: string;
 }
 
@@ -77,6 +116,7 @@ export const PERMISSIONS = [
   'orgunits:read',
   'orgunits:manage',
   'customers:read',
+  'customers:manage',
   'tickets:read',
   'tickets:manage',
   'interactions:read',

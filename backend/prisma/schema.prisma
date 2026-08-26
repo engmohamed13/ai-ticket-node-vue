@@ -21,20 +21,66 @@ model SystemInfo {
   @@map("system_info")
 }
 
-/// Minimal customer record — scoped to what interactions need (name, email, phone).
-/// Full customer profile management is out of scope for this feature.
+/// A customer profile. Contact/status fields beyond name+email+phone were added in
+/// Story 10 (work item 4) — the original comment here ("full profile management is
+/// out of scope") no longer applies.
 model Customer {
-  id           Int           @id @default(autoincrement())
+  id           Int                  @id @default(autoincrement())
   name         String
-  email        String        @unique
+  email        String               @unique
   phone        String?
-  createdAt    DateTime      @default(now())
+  company      String?
+  address      String?
+  city         String?
+  country      String?
+  status       String               @default("ACTIVE")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
 
   tickets      Ticket[]
   interactions Interaction[]
   users        User[]
+  notes        CustomerNote[]
+  attachments  CustomerAttachment[]
 
   @@map("customers")
+}
+
+/// A free-text note an agent leaves on a customer profile. Internal only — never
+/// returned to a CUSTOMER-role user (that role holds no `customers:read` permission
+/// at all; see backend/src/auth/roles.ts).
+model CustomerNote {
+  id         Int      @id @default(autoincrement())
+  body       String
+  customerId Int
+  authorId   Int
+  createdAt  DateTime @default(now())
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  author     User     @relation(fields: [authorId], references: [id])
+
+  @@index([customerId])
+  @@map("customer_notes")
+}
+
+/// Metadata for a file attached to a customer profile. The binary lives on local disk
+/// under `UPLOAD_DIR` (backend/src/config/env.ts); `storagePath` is the pointer to it
+/// and is never serialized back to the frontend (Story 11 strips it before responding).
+model CustomerAttachment {
+  id           Int      @id @default(autoincrement())
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  storagePath  String
+  customerId   Int
+  uploadedById Int
+  createdAt    DateTime @default(now())
+
+  customer     Customer @relation(fields: [customerId], references: [id])
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+
+  @@index([customerId])
+  @@map("customer_attachments")
 }
 
 /// Minimal ticket record — scoped to what interactions need to associate against.
@@ -170,6 +216,8 @@ model User {
   department   Department? @relation(fields: [departmentId], references: [id])
   branch       Branch?     @relation(fields: [branchId], references: [id])
   customer     Customer?   @relation(fields: [customerId], references: [id])
+  customerNotes       CustomerNote[]
+  customerAttachments CustomerAttachment[]
 
   @@index([roleId])
   @@index([departmentId])

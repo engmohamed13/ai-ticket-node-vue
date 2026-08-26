@@ -33,6 +33,7 @@ export const ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
     'roles:read',
     'orgunits:read',
     'customers:read',
+    'customers:manage',
     'tickets:read',
     'tickets:manage',
     'interactions:read',
@@ -42,6 +43,7 @@ export const ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
   ],
   SUPPORT_SUPERVISOR: [
     'customers:read',
+    'customers:manage',
     'tickets:read',
     'tickets:manage',
     'interactions:read',
@@ -51,6 +53,7 @@ export const ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
   ],
   SUPPORT_AGENT: [
     'customers:read',
+    'customers:manage',
     'tickets:read',
     'interactions:read',
     'interactions:create',
