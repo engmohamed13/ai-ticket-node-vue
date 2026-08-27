@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useHealthStore } from '../stores/health';
 import { useAuthStore } from '../stores/auth';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 import NotificationCenter from './NotificationCenter.vue';
 import StatusBadge from './ui/StatusBadge.vue';
 
@@ -11,6 +13,7 @@ defineEmits<{ 'toggle-nav': [] }>();
 const healthStore = useHealthStore();
 const auth = useAuthStore();
 const router = useRouter();
+const { t } = useI18n();
 
 const statusLabel = computed(() => healthStore.payload?.status ?? 'unknown');
 const statusVariant = computed(() => {
@@ -41,7 +44,7 @@ const onLogout = async (): Promise<void> => {
       <button
         type="button"
         class="nav-toggle btn btn-ghost btn-icon"
-        aria-label="Toggle navigation menu"
+        :aria-label="t('common.a11y.toggleNav')"
         @click="$emit('toggle-nav')"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -49,14 +52,15 @@ const onLogout = async (): Promise<void> => {
         </svg>
       </button>
       <RouterLink :to="{ name: 'dashboard' }" class="brand">
-        <span class="brand-mark" aria-hidden="true">CS</span>
-        <span class="brand-name">CustomerSupportCRM</span>
+        <span class="brand-mark" aria-hidden="true">{{ t('common.brandMark') }}</span>
+        <span class="brand-name">{{ t('common.appName') }}</span>
       </RouterLink>
       <StatusBadge :variant="statusVariant" class="header-status" data-testid="header-status-pill">
         {{ statusLabel }}
       </StatusBadge>
     </div>
     <div v-if="auth.isAuthenticated" class="header-user" data-testid="header-user">
+      <LanguageSwitcher class="header-language" />
       <NotificationCenter />
       <span class="user-avatar" aria-hidden="true">{{ initials }}</span>
       <span class="user-meta">
@@ -73,7 +77,7 @@ const onLogout = async (): Promise<void> => {
             stroke-linejoin="round"
           />
         </svg>
-        Logout
+        <span class="logout-label">{{ t('auth.logout') }}</span>
       </button>
     </div>
   </header>
@@ -151,8 +155,9 @@ const onLogout = async (): Promise<void> => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: var(--slate-200);
-  color: var(--slate-700);
+  /* Semantic aliases rather than raw slates, so the avatar follows the dark theme. */
+  background-color: var(--neutral-bg);
+  color: var(--neutral-fg);
   font-size: var(--font-xs);
   font-weight: 700;
   flex-shrink: 0;
@@ -188,6 +193,27 @@ const onLogout = async (): Promise<void> => {
   }
 
   .user-meta {
+    display: none;
+  }
+}
+
+/* Below ~560px the header runs out of room: the logout button keeps its icon but
+   drops its label, and the language toggle moves into the sidebar drawer instead. */
+@media (max-width: 560px) {
+  /* Visually hidden, not removed — the button's accessible name comes from this text. */
+  .logout-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .header-language {
     display: none;
   }
 }

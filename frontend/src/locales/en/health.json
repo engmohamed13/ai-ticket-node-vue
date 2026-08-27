@@ -1,0 +1,16 @@
+{
+  "title": "System Health",
+  "lastChecked": "Last checked: {time}",
+  "checking": "Checking system health…",
+  "unreachableTitle": "Cannot reach the API",
+  "degraded": "API is reachable but the database is not.",
+  "api": "API",
+  "environment": "Environment",
+  "uptime": "Uptime",
+  "uptimeValue": "{seconds}s",
+  "database": "Database",
+  "latency": "Latency",
+  "latencyValue": "{ms} ms",
+  "schemaVersion": "Schema version",
+  "error": "Error"
+}

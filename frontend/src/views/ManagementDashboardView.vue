@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDashboardStore } from '../stores/dashboard';
 import { fetchUsers } from '../services/users.service';
 import { TICKET_PRIORITIES, TICKET_STATUSES } from '../types';
@@ -11,9 +12,23 @@ import EmptyState from '../components/ui/EmptyState.vue';
 import StatusBadge from '../components/ui/StatusBadge.vue';
 
 const store = useDashboardStore();
+const { t, te } = useI18n();
 
 /** Staff for the agent filter. A failure here leaves the dropdown empty, not the page broken. */
 const agents = ref<Pick<AuthUser, 'id' | 'name'>[]>([]);
+
+/** The satisfaction score is out of five; the scale lives here so the label can interpolate it. */
+const RATING_SCALE = 5;
+
+/**
+ * Enum value → translated label. The wire format is untouched; only the label changes.
+ * Distribution rows come straight from the API, so an unknown value falls back to itself.
+ */
+const statusLabel = (value: string): string =>
+  te(`reports.status.${value}`) ? t(`reports.status.${value}`) : value;
+
+const priorityLabel = (value: string): string =>
+  te(`reports.priority.${value}`) ? t(`reports.priority.${value}`) : value;
 
 const percent = (value: number, peak: number): string => `${Math.round((value / peak) * 100)}%`;
 
@@ -36,10 +51,7 @@ onMounted(async () => {
 
 <template>
   <section class="view">
-    <PageHeader
-      title="Management Dashboard"
-      subtitle="Volume, SLA health, agent load, and what customers think."
-    />
+    <PageHeader :title="t('reports.title')" :subtitle="t('reports.subtitle')" />
 
     <AlertBanner v-if="store.error" variant="error" data-testid="dashboard-error">
       {{ store.error }}
@@ -49,35 +61,37 @@ onMounted(async () => {
       <div class="card-padded">
         <form class="filter-bar" data-testid="dashboard-filter-form" @submit.prevent="store.load()">
           <div class="form-field">
-            <label for="dashboard-start">From</label>
+            <label for="dashboard-start">{{ t('reports.filters.from') }}</label>
             <input id="dashboard-start" v-model="store.startDate" type="date" data-testid="filter-start-date" />
           </div>
           <div class="form-field">
-            <label for="dashboard-end">To</label>
+            <label for="dashboard-end">{{ t('reports.filters.to') }}</label>
             <input id="dashboard-end" v-model="store.endDate" type="date" data-testid="filter-end-date" />
           </div>
           <div class="form-field">
-            <label for="dashboard-status">Status</label>
+            <label for="dashboard-status">{{ t('reports.filters.status') }}</label>
             <select id="dashboard-status" v-model="store.statusFilter" data-testid="filter-status">
-              <option value="">All statuses</option>
-              <option v-for="value in TICKET_STATUSES" :key="value" :value="value">{{ value }}</option>
+              <option value="">{{ t('reports.filters.allStatuses') }}</option>
+              <option v-for="value in TICKET_STATUSES" :key="value" :value="value">{{ statusLabel(value) }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="dashboard-priority">Priority</label>
+            <label for="dashboard-priority">{{ t('reports.filters.priority') }}</label>
             <select id="dashboard-priority" v-model="store.priorityFilter" data-testid="filter-priority">
-              <option value="">All priorities</option>
-              <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">{{ value }}</option>
+              <option value="">{{ t('reports.filters.allPriorities') }}</option>
+              <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">{{ priorityLabel(value) }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="dashboard-agent">Agent</label>
+            <label for="dashboard-agent">{{ t('reports.filters.agent') }}</label>
             <select id="dashboard-agent" v-model="store.agentFilter" data-testid="filter-agent">
-              <option value="">All agents</option>
+              <option value="">{{ t('reports.filters.allAgents') }}</option>
               <option v-for="agent in agents" :key="agent.id" :value="agent.id">{{ agent.name }}</option>
             </select>
           </div>
-          <button class="btn btn-primary" type="submit" data-testid="apply-filters-button">Apply</button>
+          <button class="btn btn-primary" type="submit" data-testid="apply-filters-button">
+            {{ t('reports.filters.apply') }}
+          </button>
           <button
             v-if="store.hasFilters"
             class="btn btn-ghost btn-sm"
@@ -85,57 +99,63 @@ onMounted(async () => {
             data-testid="clear-filters-button"
             @click="store.clearFilters()"
           >
-            Clear
+            {{ t('common.actions.clear') }}
           </button>
         </form>
       </div>
     </div>
 
-    <LoadingState v-if="store.loading" data-testid="dashboard-loading">Loading the dashboard…</LoadingState>
+    <LoadingState v-if="store.loading" data-testid="dashboard-loading">{{ t('reports.loading') }}</LoadingState>
 
     <template v-else>
       <div class="kpi-grid" data-testid="dashboard-kpis">
         <div class="kpi-card">
-          <p class="kpi-label">Total tickets</p>
+          <p class="kpi-label">{{ t('reports.kpis.total') }}</p>
           <p class="kpi-value" data-testid="kpi-total">{{ store.summary?.totalTickets ?? 0 }}</p>
         </div>
         <div class="kpi-card">
-          <p class="kpi-label">Open</p>
+          <p class="kpi-label">{{ t('reports.kpis.open') }}</p>
           <p class="kpi-value" data-testid="kpi-open">{{ store.summary?.openTickets ?? 0 }}</p>
         </div>
         <div class="kpi-card">
-          <p class="kpi-label">Pending</p>
+          <p class="kpi-label">{{ t('reports.kpis.pending') }}</p>
           <p class="kpi-value" data-testid="kpi-pending">{{ store.summary?.pendingTickets ?? 0 }}</p>
         </div>
         <div class="kpi-card">
-          <p class="kpi-label">Resolved</p>
+          <p class="kpi-label">{{ t('reports.kpis.resolved') }}</p>
           <p class="kpi-value" data-testid="kpi-resolved">{{ store.summary?.resolvedTickets ?? 0 }}</p>
         </div>
         <div class="kpi-card">
-          <p class="kpi-label">Overdue</p>
+          <p class="kpi-label">{{ t('reports.kpis.overdue') }}</p>
           <p class="kpi-value is-danger" data-testid="kpi-overdue">{{ store.summary?.overdueTickets ?? 0 }}</p>
         </div>
         <div class="kpi-card">
-          <p class="kpi-label">Satisfaction</p>
+          <p class="kpi-label">{{ t('reports.kpis.satisfaction') }}</p>
           <p class="kpi-value" data-testid="kpi-satisfaction">
             <template v-if="store.satisfaction?.averageRating !== null && store.satisfaction !== null">
-              {{ store.satisfaction.averageRating }}<span class="kpi-suffix">/5</span>
+              <!-- One key for the whole score, so Arabic can phrase "4.5 من 5" rather than
+                   glue a translated fragment onto a number. The scale keeps its own styling
+                   through a slot. -->
+              <i18n-t keypath="reports.kpis.satisfactionValue" scope="global">
+                <template #rating>{{ store.satisfaction.averageRating }}</template>
+                <template #scale><span class="kpi-suffix">{{ RATING_SCALE }}</span></template>
+              </i18n-t>
             </template>
-            <template v-else>—</template>
+            <template v-else>{{ t('common.states.none') }}</template>
           </p>
           <p class="kpi-note" data-testid="kpi-satisfaction-count">
-            {{ store.satisfaction?.totalFeedback ?? 0 }} ratings
+            {{ t('reports.kpis.ratings', { count: store.satisfaction?.totalFeedback ?? 0 }) }}
           </p>
         </div>
       </div>
 
       <div class="panel-grid">
         <div class="card">
-          <div class="card-header"><h3 class="card-title">Tickets by status</h3></div>
+          <div class="card-header"><h3 class="card-title">{{ t('reports.panels.byStatus') }}</h3></div>
           <div class="card-padded">
             <ul class="bar-list" data-testid="status-distribution">
               <li v-for="entry in store.summary?.byStatus ?? []" :key="entry.status" class="bar-row">
-                <span class="bar-label">{{ entry.status }}</span>
+                <span class="bar-label">{{ statusLabel(entry.status) }}</span>
                 <span class="bar-track">
                   <span class="bar-fill" :style="{ width: percent(entry.count, store.statusPeak) }"></span>
                 </span>
@@ -146,11 +166,11 @@ onMounted(async () => {
         </div>
 
         <div class="card">
-          <div class="card-header"><h3 class="card-title">Tickets by priority</h3></div>
+          <div class="card-header"><h3 class="card-title">{{ t('reports.panels.byPriority') }}</h3></div>
           <div class="card-padded">
             <ul class="bar-list" data-testid="priority-distribution">
               <li v-for="entry in store.summary?.byPriority ?? []" :key="entry.priority" class="bar-row">
-                <span class="bar-label">{{ entry.priority }}</span>
+                <span class="bar-label">{{ priorityLabel(entry.priority) }}</span>
                 <span class="bar-track">
                   <span class="bar-fill" :style="{ width: percent(entry.count, store.priorityPeak) }"></span>
                 </span>
@@ -162,12 +182,12 @@ onMounted(async () => {
       </div>
 
       <div class="card">
-        <div class="card-header"><h3 class="card-title">Created vs resolved, by week</h3></div>
+        <div class="card-header"><h3 class="card-title">{{ t('reports.panels.trends') }}</h3></div>
         <div class="card-padded">
           <EmptyState
             v-if="store.trends.length === 0"
-            title="No trend data"
-            description="Nothing was opened or closed in this window."
+            :title="t('reports.trends.emptyTitle')"
+            :description="t('reports.trends.emptyDescription')"
             data-testid="trends-empty"
           />
           <div v-else class="trend-chart" data-testid="ticket-trends">
@@ -176,43 +196,43 @@ onMounted(async () => {
                 <span
                   class="trend-bar is-created"
                   :style="{ height: percent(point.created, store.trendPeak) }"
-                  :title="`${point.created} created`"
+                  :title="t('reports.trends.createdTooltip', { count: point.created })"
                 ></span>
                 <span
                   class="trend-bar is-resolved"
                   :style="{ height: percent(point.resolved, store.trendPeak) }"
-                  :title="`${point.resolved} resolved`"
+                  :title="t('reports.trends.resolvedTooltip', { count: point.resolved })"
                 ></span>
               </div>
               <span class="trend-label">{{ shortWeek(point.week) }}</span>
             </div>
           </div>
           <p class="legend">
-            <span class="legend-key is-created"></span> Created
-            <span class="legend-key is-resolved"></span> Resolved
+            <span class="legend-key is-created"></span> {{ t('reports.trends.legendCreated') }}
+            <span class="legend-key is-resolved"></span> {{ t('reports.trends.legendResolved') }}
           </p>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h3 class="card-title">Agent workload</h3></div>
+        <div class="card-header"><h3 class="card-title">{{ t('reports.panels.workload') }}</h3></div>
         <div class="card-padded">
           <EmptyState
             v-if="store.workload.length === 0"
-            title="No assigned tickets"
-            description="Nothing matches these filters, so no agent has anything queued."
+            :title="t('reports.workload.emptyTitle')"
+            :description="t('reports.workload.emptyDescription')"
             data-testid="workload-empty"
           />
           <div v-else class="table-wrapper">
             <table data-testid="agent-workload-table">
               <thead>
                 <tr>
-                  <th scope="col">Agent</th>
-                  <th scope="col">Assigned</th>
-                  <th scope="col">Open</th>
-                  <th scope="col">Pending</th>
-                  <th scope="col">Resolved</th>
-                  <th scope="col">Overdue</th>
+                  <th scope="col">{{ t('reports.workload.agent') }}</th>
+                  <th scope="col">{{ t('reports.workload.assigned') }}</th>
+                  <th scope="col">{{ t('reports.workload.open') }}</th>
+                  <th scope="col">{{ t('reports.workload.pending') }}</th>
+                  <th scope="col">{{ t('reports.workload.resolved') }}</th>
+                  <th scope="col">{{ t('reports.workload.overdue') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -231,12 +251,12 @@ onMounted(async () => {
       </div>
 
       <div class="card">
-        <div class="card-header"><h3 class="card-title">Most-read knowledge base articles</h3></div>
+        <div class="card-header"><h3 class="card-title">{{ t('reports.panels.topArticles') }}</h3></div>
         <div class="card-padded">
           <EmptyState
             v-if="store.topArticles.length === 0"
-            title="No published articles"
-            description="Publish a knowledge base article and its readership will show up here."
+            :title="t('reports.articles.emptyTitle')"
+            :description="t('reports.articles.emptyDescription')"
             data-testid="top-articles-empty"
           />
           <ul v-else class="article-list" data-testid="top-articles">
@@ -245,7 +265,7 @@ onMounted(async () => {
                 {{ article.title }}
               </RouterLink>
               <StatusBadge variant="neutral">{{ article.category.name }}</StatusBadge>
-              <span class="article-views">{{ article.viewCount }} views</span>
+              <span class="article-views">{{ t('reports.articles.views', { count: article.viewCount }) }}</span>
             </li>
           </ul>
         </div>
@@ -342,7 +362,7 @@ onMounted(async () => {
 }
 
 .bar-value {
-  text-align: right;
+  text-align: end;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
@@ -391,8 +411,8 @@ onMounted(async () => {
 .trend-label {
   position: absolute;
   bottom: -1.3rem;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   text-align: center;
   font-size: var(--font-xs);
   color: var(--text-subtle);
@@ -420,7 +440,7 @@ onMounted(async () => {
 
 .legend-key.is-resolved {
   background-color: var(--slate-400, #94a3b8);
-  margin-left: 0.6rem;
+  margin-inline-start: 0.6rem;
 }
 
 .article-list {

@@ -1,0 +1,55 @@
+{
+  "title": "Knowledge Base",
+  "subtitle": "Guides and answers to the questions we are asked most.",
+  "searchLabel": "Search articles",
+  "searchPlaceholder": "Try “sign in” or “priority”",
+  "categoryLabel": "Category",
+  "allCategories": "All categories",
+  "categoriesTitle": "Categories",
+  "loadingArticles": "Loading articles…",
+  "emptyTitle": "No articles found",
+  "emptyDescription": "Try a different search term, or clear the category filter.",
+  "views": "{count} views",
+  "state": {
+    "published": "Published",
+    "draft": "Draft"
+  },
+  "actions": {
+    "publish": "Publish",
+    "unpublish": "Unpublish"
+  },
+  "manage": {
+    "title": "Manage articles",
+    "subtitle": "Write, edit, publish, and unpublish knowledge base articles.",
+    "backLink": "View knowledge base",
+    "newArticle": "New article",
+    "editArticle": "Edit article",
+    "createSubmit": "Create article",
+    "saveSubmit": "Save changes",
+    "publishedHint": "Published — visible to customers and agents",
+    "emptyTitle": "No articles yet",
+    "emptyDescription": "Create the first knowledge base article to get started.",
+    "fields": {
+      "title": "Title",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category…",
+      "summary": "Summary (optional)",
+      "body": "Body (markdown)"
+    },
+    "columns": {
+      "title": "Title",
+      "category": "Category",
+      "state": "State",
+      "views": "Views",
+      "actions": "Actions"
+    }
+  },
+  "article": {
+    "fallbackTitle": "Article",
+    "backLink": "Back to the knowledge base",
+    "loading": "Loading this article…",
+    "missingTitle": "Article not found",
+    "missingDescription": "It may have been unpublished, or the link is incorrect.",
+    "updated": "Updated {date}"
+  }
+}

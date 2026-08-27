@@ -1,0 +1,16 @@
+{
+  "title": "حالة النظام",
+  "lastChecked": "آخر تحقق: {time}",
+  "checking": "جارٍ التحقق من حالة النظام…",
+  "unreachableTitle": "لا يمكن الوصول إلى الواجهة البرمجية",
+  "degraded": "الواجهة البرمجية متاحة لكن قاعدة البيانات غير متاحة.",
+  "api": "الواجهة البرمجية",
+  "environment": "البيئة",
+  "uptime": "مدة التشغيل",
+  "uptimeValue": "{seconds} ث",
+  "database": "قاعدة البيانات",
+  "latency": "زمن الاستجابة",
+  "latencyValue": "{ms} مللي ثانية",
+  "schemaVersion": "إصدار المخطط",
+  "error": "خطأ"
+}

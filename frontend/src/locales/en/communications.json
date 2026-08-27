@@ -1,0 +1,37 @@
+{
+  "title": "Communications",
+  "subtitle": "A unified inbox across every channel, per customer.",
+  "customerLabel": "Customer",
+  "createTitle": "Create or receive an interaction",
+  "ticketPlaceholder": "Not associated yet",
+  "noTicketsHint": "This customer has no tickets yet — new interactions start unassociated.",
+  "subjectPlaceholder": "Optional subject line",
+  "submit": "Save interaction",
+  "fields": {
+    "channel": "Channel",
+    "direction": "Direction",
+    "ticket": "Ticket (optional)",
+    "subject": "Subject",
+    "message": "Message"
+  },
+  "channels": {
+    "EMAIL": "EMAIL",
+    "WHATSAPP": "WHATSAPP",
+    "LIVE_CHAT": "LIVE_CHAT",
+    "SMS": "SMS",
+    "WEB_FORM": "WEB_FORM"
+  },
+  "directions": {
+    "INBOUND": "INBOUND",
+    "OUTBOUND": "OUTBOUND"
+  },
+  "timeline": {
+    "title": "Unified timeline",
+    "loading": "Loading timeline…",
+    "emptyTitle": "No interactions yet",
+    "emptyDescription": "Interactions with this customer will appear here as they come in.",
+    "ticketRef": "Ticket #{id}",
+    "associatePlaceholder": "Associate with a ticket…",
+    "associate": "Associate"
+  }
+}

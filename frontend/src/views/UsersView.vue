@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useUsersStore } from '../stores/users';
 import PageHeader from '../components/ui/PageHeader.vue';
@@ -10,6 +11,7 @@ import StatusBadge from '../components/ui/StatusBadge.vue';
 
 const store = useUsersStore();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 onMounted(() => {
   void store.loadDirectory();
@@ -76,83 +78,83 @@ const onDeactivate = async (userId: number): Promise<void> => {
 
 <template>
   <section class="view">
-    <PageHeader title="Users" subtitle="The user directory, roles, and org assignments." />
+    <PageHeader :title="t('admin.users.title')" :subtitle="t('admin.users.subtitle')" />
 
     <AlertBanner v-if="store.error" variant="error" data-testid="users-error">{{ store.error }}</AlertBanner>
     <AlertBanner v-if="store.notice" variant="success" data-testid="users-notice">{{ store.notice }}</AlertBanner>
 
     <div v-if="canManage" class="card">
       <div class="card-header">
-        <h3 class="card-title">Create user</h3>
+        <h3 class="card-title">{{ t('admin.users.createTitle') }}</h3>
       </div>
       <form class="card-padded" data-testid="create-user-form" @submit.prevent="onCreate">
         <div class="form-grid">
           <div class="form-field">
-            <label for="user-name">Name</label>
+            <label for="user-name">{{ t('admin.users.fields.name') }}</label>
             <input id="user-name" v-model="name" data-testid="user-name-input" type="text" required />
           </div>
           <div class="form-field">
-            <label for="user-email">Email</label>
+            <label for="user-email">{{ t('admin.users.fields.email') }}</label>
             <input id="user-email" v-model="email" data-testid="user-email-input" type="email" required />
           </div>
           <div class="form-field">
-            <label for="user-password">Password</label>
+            <label for="user-password">{{ t('admin.users.fields.password') }}</label>
             <input id="user-password" v-model="password" data-testid="user-password-input" type="password" required />
           </div>
           <div class="form-field">
-            <label for="user-role">Role</label>
+            <label for="user-role">{{ t('admin.users.fields.role') }}</label>
             <select id="user-role" v-model="roleId" data-testid="user-role-select">
-              <option value="">Select a role…</option>
+              <option value="">{{ t('admin.users.rolePlaceholder') }}</option>
               <option v-for="role in store.roles" :key="role.id" :value="role.id">{{ role.name }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="user-branch">Branch</label>
+            <label for="user-branch">{{ t('admin.users.fields.branch') }}</label>
             <select id="user-branch" v-model="branchId" data-testid="user-branch-select">
-              <option value="">No branch</option>
+              <option value="">{{ t('admin.users.noBranch') }}</option>
               <option v-for="branch in store.branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="user-department">Department</label>
+            <label for="user-department">{{ t('admin.users.fields.department') }}</label>
             <select id="user-department" v-model="departmentId" data-testid="user-department-select">
-              <option value="">No department</option>
+              <option value="">{{ t('admin.users.noDepartment') }}</option>
               <option v-for="department in departmentsForBranch" :key="department.id" :value="department.id">
                 {{ department.name }}
               </option>
             </select>
           </div>
           <div v-if="requiresCustomer" class="form-field">
-            <label for="user-customer">Customer ID</label>
+            <label for="user-customer">{{ t('admin.users.fields.customerId') }}</label>
             <input id="user-customer" v-model="customerId" data-testid="user-customer-input" type="number" />
           </div>
         </div>
         <div class="form-actions">
-          <button class="btn btn-primary" type="submit" data-testid="create-user-submit">Create user</button>
+          <button class="btn btn-primary" type="submit" data-testid="create-user-submit">{{ t('admin.users.createSubmit') }}</button>
         </div>
       </form>
     </div>
-    <AlertBanner v-else variant="info" data-testid="users-readonly-hint">You have read-only access to the user directory.</AlertBanner>
+    <AlertBanner v-else variant="info" data-testid="users-readonly-hint">{{ t('admin.users.readOnlyHint') }}</AlertBanner>
 
-    <LoadingState v-if="store.loading" data-testid="users-loading">Loading users…</LoadingState>
+    <LoadingState v-if="store.loading" data-testid="users-loading">{{ t('admin.users.loading') }}</LoadingState>
 
     <EmptyState
       v-else-if="isEmpty"
-      title="No users yet"
-      description="Users created by an administrator will show up here."
+      :title="t('admin.users.emptyTitle')"
+      :description="t('admin.users.emptyDescription')"
     />
 
     <div v-else class="table-wrapper">
       <table data-testid="users-table">
         <thead>
           <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Email</th>
-            <th scope="col">Role</th>
-            <th scope="col">Branch</th>
-            <th scope="col">Department</th>
-            <th scope="col">Status</th>
-            <th v-if="canManage" scope="col">Actions</th>
+            <th scope="col">{{ t('admin.users.fields.name') }}</th>
+            <th scope="col">{{ t('admin.users.fields.email') }}</th>
+            <th scope="col">{{ t('admin.users.fields.role') }}</th>
+            <th scope="col">{{ t('admin.users.fields.branch') }}</th>
+            <th scope="col">{{ t('admin.users.fields.department') }}</th>
+            <th scope="col">{{ t('admin.users.fields.status') }}</th>
+            <th v-if="canManage" scope="col">{{ t('admin.users.fields.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -160,18 +162,18 @@ const onDeactivate = async (userId: number): Promise<void> => {
             <td class="cell-strong">{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.roleName }}</td>
-            <td>{{ user.branch?.name ?? '—' }}</td>
-            <td>{{ user.department?.name ?? '—' }}</td>
+            <td>{{ user.branch?.name ?? t('common.states.none') }}</td>
+            <td>{{ user.department?.name ?? t('common.states.none') }}</td>
             <td data-testid="user-status">
-              <StatusBadge :variant="user.isActive ? 'success' : 'neutral'">{{ user.isActive ? 'Active' : 'Inactive' }}</StatusBadge>
+              <StatusBadge :variant="user.isActive ? 'success' : 'neutral'">{{ user.isActive ? t('admin.users.status.active') : t('admin.users.status.inactive') }}</StatusBadge>
             </td>
             <td v-if="canManage" class="actions-cell">
               <input
                 v-model="passwordDrafts[user.id]"
                 data-testid="reset-password-input"
                 type="password"
-                placeholder="New password"
-                aria-label="New password"
+                :placeholder="t('admin.users.newPassword')"
+                :aria-label="t('admin.users.newPassword')"
               />
               <button
                 class="btn btn-secondary btn-sm"
@@ -179,7 +181,7 @@ const onDeactivate = async (userId: number): Promise<void> => {
                 data-testid="reset-password-button"
                 @click="onResetPassword(user.id)"
               >
-                Reset
+                {{ t('admin.users.resetPassword') }}
               </button>
               <button
                 class="btn btn-danger btn-sm"
@@ -188,7 +190,7 @@ const onDeactivate = async (userId: number): Promise<void> => {
                 :disabled="!user.isActive || user.id === auth.user?.id"
                 @click="onDeactivate(user.id)"
               >
-                Deactivate
+                {{ t('admin.users.deactivate') }}
               </button>
             </td>
           </tr>

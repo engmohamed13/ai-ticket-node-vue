@@ -1,0 +1,55 @@
+{
+  "appName": "نظام دعم العملاء",
+  "brandMark": "دع",
+  "actions": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "create": "إنشاء",
+    "update": "تحديث",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "close": "إغلاق",
+    "submit": "إرسال",
+    "refresh": "تحديث",
+    "retry": "إعادة المحاولة",
+    "search": "بحث",
+    "filter": "تصفية",
+    "clear": "مسح",
+    "back": "رجوع",
+    "dismiss": "إخفاء",
+    "viewAll": "عرض الكل",
+    "saving": "جارٍ الحفظ…",
+    "loading": "جارٍ التحميل…"
+  },
+  "states": {
+    "loading": "جارٍ التحميل…",
+    "empty": "لا توجد سجلات",
+    "error": "حدث خطأ ما",
+    "noData": "لا توجد بيانات",
+    "none": "—"
+  },
+  "pagination": {
+    "summary": "عرض {from}–{to} من {total}",
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "صفحة {page} من {pages}",
+    "perPage": "لكل صفحة"
+  },
+  "table": {
+    "sortAscending": "مرتب تصاعديًا",
+    "sortDescending": "مرتب تنازليًا",
+    "sortBy": "ترتيب حسب {column}"
+  },
+  "language": {
+    "label": "اللغة",
+    "switchTo": "التبديل إلى {language}",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "a11y": {
+    "skipToContent": "تخطَّ إلى المحتوى الرئيسي",
+    "toggleNav": "إظهار أو إخفاء قائمة التنقل",
+    "primaryNav": "التنقل الرئيسي",
+    "breadcrumb": "مسار التنقل"
+  }
+}

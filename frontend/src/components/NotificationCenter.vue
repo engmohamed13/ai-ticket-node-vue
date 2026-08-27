@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useNotificationsStore } from '../stores/notifications';
-import { NOTIFICATION_ICONS, NOTIFICATION_LABELS } from './notificationIcons';
+import type { NotificationType } from '../types';
+import { NOTIFICATION_ICONS } from './notificationIcons';
 import EmptyState from './ui/EmptyState.vue';
 import LoadingState from './ui/LoadingState.vue';
 
@@ -16,13 +18,17 @@ import LoadingState from './ui/LoadingState.vue';
  */
 const notifications = useNotificationsStore();
 const router = useRouter();
+const { t, locale } = useI18n();
 
 const open = ref(false);
 const unreadOnly = ref(false);
 
 const visible = computed(() => (unreadOnly.value ? notifications.unreadItems : notifications.items));
 
-const formatWhen = (value: string): string => new Date(value).toLocaleString();
+/** Notification type → translated chip label. The type itself stays the wire value. */
+const typeLabel = (type: NotificationType): string => t(`notifications.types.${type}`);
+
+const formatWhen = (value: string): string => new Date(value).toLocaleString(locale.value);
 
 const onToggle = (): void => {
   open.value = !open.value;
@@ -56,8 +62,8 @@ if (typeof document !== 'undefined') {
       type="button"
       :aria-label="
         notifications.unreadCount > 0
-          ? `Notifications, ${notifications.unreadCount} unread`
-          : 'Notifications'
+          ? t('notifications.bellLabelUnread', { count: notifications.unreadCount })
+          : t('notifications.bellLabel')
       "
       :aria-expanded="open"
       data-testid="notification-bell"
@@ -79,7 +85,7 @@ if (typeof document !== 'undefined') {
 
     <div v-if="open" class="panel" data-testid="notification-panel">
       <header class="panel-header">
-        <h3 class="panel-title">Notifications</h3>
+        <h3 class="panel-title">{{ t('notifications.title') }}</h3>
         <button
           v-if="notifications.hasUnread"
           class="btn btn-ghost btn-sm"
@@ -87,23 +93,25 @@ if (typeof document !== 'undefined') {
           data-testid="mark-all-read-button"
           @click="notifications.markAllRead()"
         >
-          Mark all read
+          {{ t('notifications.markAllRead') }}
         </button>
       </header>
 
       <div class="panel-filter">
         <label class="filter-toggle">
           <input v-model="unreadOnly" type="checkbox" data-testid="notification-unread-filter" />
-          <span>Unread only</span>
+          <span>{{ t('notifications.unreadOnly') }}</span>
         </label>
       </div>
 
-      <LoadingState v-if="notifications.loading" data-testid="notification-loading">Loading…</LoadingState>
+      <LoadingState v-if="notifications.loading" data-testid="notification-loading">{{
+        t('common.states.loading')
+      }}</LoadingState>
 
       <EmptyState
         v-else-if="visible.length === 0"
-        :title="unreadOnly ? 'Nothing unread' : 'No notifications yet'"
-        description="Assignments, status changes, comments, SLA breaches, and customer feedback show up here."
+        :title="unreadOnly ? t('notifications.emptyUnreadTitle') : t('notifications.emptyTitle')"
+        :description="t('notifications.emptyDescription')"
         data-testid="notification-empty"
       />
 
@@ -128,7 +136,7 @@ if (typeof document !== 'undefined') {
             <p class="item-title">{{ entry.title }}</p>
             <p class="item-message">{{ entry.message }}</p>
             <p class="item-meta">
-              <span class="item-type">{{ NOTIFICATION_LABELS[entry.type] }}</span>
+              <span class="item-type">{{ typeLabel(entry.type) }}</span>
               <span>{{ formatWhen(entry.createdAt) }}</span>
             </p>
             <div class="item-actions">
@@ -139,7 +147,7 @@ if (typeof document !== 'undefined') {
                 data-testid="notification-open-button"
                 @click="onOpenNotification(entry.id, entry.relatedTicketId)"
               >
-                Open ticket #{{ entry.relatedTicketId }}
+                {{ t('notifications.openTicket', { id: entry.relatedTicketId }) }}
               </button>
               <button
                 v-if="!entry.isRead"
@@ -148,7 +156,7 @@ if (typeof document !== 'undefined') {
                 data-testid="notification-mark-read-button"
                 @click="notifications.markRead(entry.id)"
               >
-                Mark read
+                {{ t('notifications.markRead') }}
               </button>
               <button
                 class="item-action is-muted"
@@ -156,7 +164,7 @@ if (typeof document !== 'undefined') {
                 data-testid="notification-delete-button"
                 @click="notifications.dismiss(entry.id)"
               >
-                Dismiss
+                {{ t('common.actions.dismiss') }}
               </button>
             </div>
           </div>
@@ -179,7 +187,7 @@ if (typeof document !== 'undefined') {
 .badge-count {
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   min-width: 16px;
   height: 16px;
   padding: 0 3px;
@@ -195,7 +203,7 @@ if (typeof document !== 'undefined') {
 .panel {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  inset-inline-end: 0;
   z-index: 50;
   width: min(380px, calc(100vw - 2rem));
   max-height: 70vh;

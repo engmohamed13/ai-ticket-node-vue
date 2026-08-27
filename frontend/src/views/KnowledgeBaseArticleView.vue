@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { useKbStore } from '../stores/kb';
 import { renderMarkdown } from '../services/markdown';
@@ -11,6 +12,7 @@ import StatusBadge from '../components/ui/StatusBadge.vue';
 
 const store = useKbStore();
 const route = useRoute();
+const { t, locale } = useI18n();
 
 const articleId = computed(() => Number(route.params.id));
 
@@ -22,7 +24,7 @@ const bodyHtml = computed(() =>
   store.selectedArticle ? renderMarkdown(store.selectedArticle.body) : ''
 );
 
-const formatDate = (value: string): string => new Date(value).toLocaleDateString();
+const formatDate = (value: string): string => new Date(value).toLocaleDateString(locale.value);
 
 onMounted(() => {
   void store.loadArticle(articleId.value);
@@ -37,10 +39,10 @@ watch(articleId, (next) => {
 
 <template>
   <section class="view">
-    <PageHeader :title="store.selectedArticle?.title ?? 'Article'">
+    <PageHeader :title="store.selectedArticle?.title ?? t('kb.article.fallbackTitle')">
       <template #actions>
         <RouterLink class="btn btn-secondary" :to="{ name: 'kb' }" data-testid="kb-back-link">
-          Back to the knowledge base
+          {{ t('kb.article.backLink') }}
         </RouterLink>
       </template>
     </PageHeader>
@@ -50,13 +52,13 @@ watch(articleId, (next) => {
     </AlertBanner>
 
     <LoadingState v-if="store.detailLoading" data-testid="kb-article-loading">
-      Loading this article…
+      {{ t('kb.article.loading') }}
     </LoadingState>
 
     <EmptyState
       v-else-if="!store.selectedArticle"
-      title="Article not found"
-      description="It may have been unpublished, or the link is incorrect."
+      :title="t('kb.article.missingTitle')"
+      :description="t('kb.article.missingDescription')"
       data-testid="kb-article-missing"
     />
 
@@ -65,10 +67,12 @@ watch(articleId, (next) => {
         <p class="article-meta" data-testid="kb-article-meta">
           <StatusBadge variant="neutral">{{ store.selectedArticle.category.name }}</StatusBadge>
           <StatusBadge v-if="!store.selectedArticle.isPublished" variant="warning" data-testid="kb-article-draft-badge">
-            Draft
+            {{ t('kb.state.draft') }}
           </StatusBadge>
-          <span data-testid="kb-article-views">{{ store.selectedArticle.viewCount }} views</span>
-          <span>Updated {{ formatDate(store.selectedArticle.updatedAt) }}</span>
+          <span data-testid="kb-article-views">
+            {{ t('kb.views', { count: store.selectedArticle.viewCount }) }}
+          </span>
+          <span>{{ t('kb.article.updated', { date: formatDate(store.selectedArticle.updatedAt) }) }}</span>
         </p>
 
         <!-- eslint-disable-next-line vue/no-v-html -- body is escaped by renderMarkdown -->
@@ -119,7 +123,7 @@ watch(articleId, (next) => {
 
 .article-body :deep(ul) {
   margin: 0 0 var(--space-3);
-  padding-left: 1.4rem;
+  padding-inline-start: 1.4rem;
 }
 
 .article-body :deep(li) {

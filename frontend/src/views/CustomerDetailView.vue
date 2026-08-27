@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useCustomersStore } from '../stores/customers';
@@ -14,6 +15,12 @@ import StatusBadge from '../components/ui/StatusBadge.vue';
 const route = useRoute();
 const store = useCustomersStore();
 const auth = useAuthStore();
+const { t, locale } = useI18n();
+
+/** Enum value → translated label. The value stays the wire format; only the label changes. */
+const statusLabel = (value: CustomerStatus): string => t(`customers.status.${value}`);
+const channelLabel = (value: string): string => t(`customers.channels.${value}`);
+const directionLabel = (value: string): string => t(`customers.directions.${value}`);
 
 const customerId = computed(() => Number(route.params.id));
 const canManage = computed(() => auth.can('customers:manage'));
@@ -103,8 +110,9 @@ const onDeleteAttachment = async (attachmentId: number): Promise<void> => {
   await store.removeAttachment(customerId.value, attachmentId);
 };
 
-const formatDateTime = (value: string): string => new Date(value).toLocaleString();
-const formatSize = (sizeBytes: number): string => `${(sizeBytes / 1024).toFixed(1)} KB`;
+const formatDateTime = (value: string): string => new Date(value).toLocaleString(locale.value);
+const formatSize = (sizeBytes: number): string =>
+  t('customers.detail.fileSize', { size: (sizeBytes / 1024).toFixed(1) });
 
 const isNotesEmpty = computed(() => store.notes.length === 0);
 const isAttachmentsEmpty = computed(() => store.attachments.length === 0);
@@ -121,29 +129,29 @@ onMounted(() => {
 <template>
   <section class="view">
     <PageHeader
-      :title="store.selectedCustomer?.name ?? 'Customer'"
-      subtitle="Profile, notes, attachments, and history."
+      :title="store.selectedCustomer?.name ?? t('customers.detail.titleFallback')"
+      :subtitle="t('customers.detail.subtitle')"
     />
 
     <AlertBanner v-if="store.error" variant="error" data-testid="customer-detail-error">{{ store.error }}</AlertBanner>
     <AlertBanner v-if="store.notice" variant="success" data-testid="customer-detail-notice">{{ store.notice }}</AlertBanner>
 
-    <LoadingState v-if="store.detailLoading" data-testid="customer-detail-loading">Loading customer…</LoadingState>
+    <LoadingState v-if="store.detailLoading" data-testid="customer-detail-loading">{{ t('customers.detail.loading') }}</LoadingState>
 
     <EmptyState
       v-else-if="!store.selectedCustomer"
-      title="Customer not found"
-      description="It may have been removed, or the link is incorrect."
+      :title="t('customers.detail.notFoundTitle')"
+      :description="t('customers.detail.notFoundDescription')"
     >
       <template #actions>
-        <RouterLink class="btn btn-secondary" :to="{ name: 'customers' }">Back to customers</RouterLink>
+        <RouterLink class="btn btn-secondary" :to="{ name: 'customers' }">{{ t('customers.detail.backToCustomers') }}</RouterLink>
       </template>
     </EmptyState>
 
     <template v-else>
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Profile</h3>
+          <h3 class="card-title">{{ t('customers.detail.profile') }}</h3>
           <button
             v-if="canManage && !isEditing"
             class="btn btn-secondary btn-sm"
@@ -151,78 +159,102 @@ onMounted(() => {
             data-testid="edit-customer-button"
             @click="onStartEdit"
           >
-            Edit
+            {{ t('common.actions.edit') }}
           </button>
         </div>
 
         <div v-if="!isEditing" class="card-padded profile-grid" data-testid="customer-profile">
-          <div class="profile-field"><span class="profile-label">Email</span><span>{{ store.selectedCustomer.email }}</span></div>
-          <div class="profile-field"><span class="profile-label">Phone</span><span>{{ store.selectedCustomer.phone ?? '—' }}</span></div>
-          <div class="profile-field"><span class="profile-label">Company</span><span>{{ store.selectedCustomer.company ?? '—' }}</span></div>
-          <div class="profile-field"><span class="profile-label">Address</span><span>{{ store.selectedCustomer.address ?? '—' }}</span></div>
-          <div class="profile-field"><span class="profile-label">City</span><span>{{ store.selectedCustomer.city ?? '—' }}</span></div>
-          <div class="profile-field"><span class="profile-label">Country</span><span>{{ store.selectedCustomer.country ?? '—' }}</span></div>
           <div class="profile-field">
-            <span class="profile-label">Status</span>
-            <StatusBadge :variant="statusVariant(store.selectedCustomer.status)">{{ store.selectedCustomer.status }}</StatusBadge>
+            <span class="profile-label">{{ t('customers.fields.email') }}</span><span>{{ store.selectedCustomer.email }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">{{ t('customers.fields.phone') }}</span>
+            <span>{{ store.selectedCustomer.phone ?? t('common.states.none') }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">{{ t('customers.fields.company') }}</span>
+            <span>{{ store.selectedCustomer.company ?? t('common.states.none') }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">{{ t('customers.fields.address') }}</span>
+            <span>{{ store.selectedCustomer.address ?? t('common.states.none') }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">{{ t('customers.fields.city') }}</span>
+            <span>{{ store.selectedCustomer.city ?? t('common.states.none') }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">{{ t('customers.fields.country') }}</span>
+            <span>{{ store.selectedCustomer.country ?? t('common.states.none') }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">{{ t('customers.fields.status') }}</span>
+            <StatusBadge :variant="statusVariant(store.selectedCustomer.status)">
+              {{ statusLabel(store.selectedCustomer.status) }}
+            </StatusBadge>
           </div>
         </div>
 
         <form v-else class="card-padded" data-testid="edit-customer-form" @submit.prevent="onSaveEdit">
           <div class="form-grid">
             <div class="form-field">
-              <label for="edit-customer-name">Name</label>
+              <label for="edit-customer-name">{{ t('customers.fields.name') }}</label>
               <input id="edit-customer-name" v-model="editName" data-testid="edit-customer-name-input" type="text" required />
             </div>
             <div class="form-field">
-              <label for="edit-customer-email">Email</label>
+              <label for="edit-customer-email">{{ t('customers.fields.email') }}</label>
               <input id="edit-customer-email" v-model="editEmail" data-testid="edit-customer-email-input" type="email" required />
             </div>
             <div class="form-field">
-              <label for="edit-customer-phone">Phone</label>
+              <label for="edit-customer-phone">{{ t('customers.fields.phone') }}</label>
               <input id="edit-customer-phone" v-model="editPhone" data-testid="edit-customer-phone-input" type="text" />
             </div>
             <div class="form-field">
-              <label for="edit-customer-company">Company</label>
+              <label for="edit-customer-company">{{ t('customers.fields.company') }}</label>
               <input id="edit-customer-company" v-model="editCompany" data-testid="edit-customer-company-input" type="text" />
             </div>
             <div class="form-field">
-              <label for="edit-customer-address">Address</label>
+              <label for="edit-customer-address">{{ t('customers.fields.address') }}</label>
               <input id="edit-customer-address" v-model="editAddress" data-testid="edit-customer-address-input" type="text" />
             </div>
             <div class="form-field">
-              <label for="edit-customer-city">City</label>
+              <label for="edit-customer-city">{{ t('customers.fields.city') }}</label>
               <input id="edit-customer-city" v-model="editCity" data-testid="edit-customer-city-input" type="text" />
             </div>
             <div class="form-field">
-              <label for="edit-customer-country">Country</label>
+              <label for="edit-customer-country">{{ t('customers.fields.country') }}</label>
               <input id="edit-customer-country" v-model="editCountry" data-testid="edit-customer-country-input" type="text" />
             </div>
             <div class="form-field">
-              <label for="edit-customer-status">Status</label>
+              <label for="edit-customer-status">{{ t('customers.fields.status') }}</label>
               <select id="edit-customer-status" v-model="editStatus" data-testid="edit-customer-status-select">
-                <option v-for="value in CUSTOMER_STATUSES" :key="value" :value="value">{{ value }}</option>
+                <option v-for="value in CUSTOMER_STATUSES" :key="value" :value="value">{{ statusLabel(value) }}</option>
               </select>
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn btn-primary" type="submit" data-testid="save-customer-button">Save</button>
-            <button class="btn btn-secondary" type="button" data-testid="cancel-edit-button" @click="onCancelEdit">Cancel</button>
+            <button class="btn btn-primary" type="submit" data-testid="save-customer-button">{{ t('common.actions.save') }}</button>
+            <button class="btn btn-secondary" type="button" data-testid="cancel-edit-button" @click="onCancelEdit">{{ t('common.actions.cancel') }}</button>
           </div>
         </form>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Notes</h3>
+          <h3 class="card-title">{{ t('customers.detail.notes') }}</h3>
         </div>
         <div class="card-padded">
           <form v-if="canManage" class="note-form" data-testid="add-note-form" @submit.prevent="onAddNote">
-            <textarea v-model="noteBody" data-testid="note-body-input" rows="3" placeholder="Add a note…"></textarea>
-            <button class="btn btn-primary btn-sm" type="submit" data-testid="add-note-button">Add note</button>
+            <textarea
+              v-model="noteBody"
+              data-testid="note-body-input"
+              rows="3"
+              :placeholder="t('customers.detail.notePlaceholder')"
+            ></textarea>
+            <button class="btn btn-primary btn-sm" type="submit" data-testid="add-note-button">{{ t('customers.detail.addNote') }}</button>
           </form>
 
-          <EmptyState v-if="isNotesEmpty" title="No notes yet" />
+          <EmptyState v-if="isNotesEmpty" :title="t('customers.detail.noNotes')" />
           <ul v-else class="notes-list" data-testid="notes-list">
             <li v-for="note in store.notes" :key="note.id" class="note-item" data-testid="note-item">
               <div class="note-meta">
@@ -237,17 +269,17 @@ onMounted(() => {
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Attachments</h3>
+          <h3 class="card-title">{{ t('customers.detail.attachments') }}</h3>
         </div>
         <div class="card-padded">
           <div v-if="canManage" class="attachment-form">
             <input ref="fileInput" data-testid="attachment-file-input" type="file" />
             <button class="btn btn-primary btn-sm" type="button" data-testid="upload-attachment-button" @click="onUploadAttachment">
-              Upload
+              {{ t('customers.detail.upload') }}
             </button>
           </div>
 
-          <EmptyState v-if="isAttachmentsEmpty" title="No attachments yet" />
+          <EmptyState v-if="isAttachmentsEmpty" :title="t('customers.detail.noAttachments')" />
           <ul v-else class="attachments-list" data-testid="attachments-list">
             <li v-for="attachment in store.attachments" :key="attachment.id" class="attachment-item" data-testid="attachment-item">
               <span class="attachment-name">{{ attachment.fileName }}</span>
@@ -258,7 +290,7 @@ onMounted(() => {
                 data-testid="download-attachment-button"
                 @click="onDownloadAttachment(attachment)"
               >
-                Download
+                {{ t('customers.detail.download') }}
               </button>
               <button
                 v-if="canManage"
@@ -267,7 +299,7 @@ onMounted(() => {
                 data-testid="delete-attachment-button"
                 @click="onDeleteAttachment(attachment.id)"
               >
-                Delete
+                {{ t('common.actions.delete') }}
               </button>
             </li>
           </ul>
@@ -276,24 +308,24 @@ onMounted(() => {
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Tickets</h3>
+          <h3 class="card-title">{{ t('customers.detail.tickets') }}</h3>
         </div>
         <div class="card-padded">
-          <EmptyState v-if="isTicketsEmpty" title="No tickets yet" />
+          <EmptyState v-if="isTicketsEmpty" :title="t('customers.detail.noTickets')" />
           <div v-else class="table-wrapper">
             <table data-testid="customer-tickets-table">
               <thead>
                 <tr>
-                  <th scope="col">Subject</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Created</th>
+                  <th scope="col">{{ t('customers.fields.subject') }}</th>
+                  <th scope="col">{{ t('customers.fields.status') }}</th>
+                  <th scope="col">{{ t('customers.fields.created') }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="ticket in store.tickets" :key="ticket.id">
                   <td>{{ ticket.subject }}</td>
                   <td><StatusBadge variant="primary">{{ ticket.status }}</StatusBadge></td>
-                  <td>{{ new Date(ticket.createdAt).toLocaleDateString() }}</td>
+                  <td>{{ new Date(ticket.createdAt).toLocaleDateString(locale) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -303,23 +335,27 @@ onMounted(() => {
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Interaction history</h3>
+          <h3 class="card-title">{{ t('customers.detail.timelineTitle') }}</h3>
         </div>
         <div class="card-padded timeline-body">
           <EmptyState
             v-if="isTimelineEmpty"
-            title="No interactions yet"
-            description="Interactions with this customer will appear here as they come in."
+            :title="t('customers.detail.timelineEmptyTitle')"
+            :description="t('customers.detail.timelineEmptyDescription')"
           />
           <ul v-else class="timeline" data-testid="timeline-list">
             <li v-for="interaction in store.timeline" :key="interaction.id" class="timeline-item" data-testid="timeline-item">
               <div class="timeline-meta">
-                <StatusBadge variant="primary" class="channel-badge">{{ interaction.channel }}</StatusBadge>
-                <StatusBadge :variant="directionVariant(interaction.direction)" class="direction">{{ interaction.direction }}</StatusBadge>
+                <StatusBadge variant="primary" class="channel-badge">{{ channelLabel(interaction.channel) }}</StatusBadge>
+                <StatusBadge :variant="directionVariant(interaction.direction)" class="direction">
+                  {{ directionLabel(interaction.direction) }}
+                </StatusBadge>
                 <span class="occurred-at">{{ formatDateTime(interaction.occurredAt) }}</span>
               </div>
               <p class="body">{{ interaction.body }}</p>
-              <p v-if="interaction.ticketId" class="ticket-link">Ticket #{{ interaction.ticketId }}</p>
+              <p v-if="interaction.ticketId" class="ticket-link">
+                {{ t('customers.detail.ticketRef', { id: interaction.ticketId }) }}
+              </p>
             </li>
           </ul>
         </div>

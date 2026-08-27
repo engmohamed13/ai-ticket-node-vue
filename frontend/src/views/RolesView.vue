@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useUsersStore } from '../stores/users';
 import type { Permission } from '../types';
@@ -9,6 +10,7 @@ import LoadingState from '../components/ui/LoadingState.vue';
 
 const store = useUsersStore();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const canManage = computed(() => auth.can('roles:manage'));
 
@@ -44,11 +46,11 @@ const onSave = async (roleId: number): Promise<void> => {
 
 <template>
   <section class="view">
-    <PageHeader title="Roles &amp; Permissions" subtitle="Control what each role can see and do." />
+    <PageHeader :title="t('admin.roles.title')" :subtitle="t('admin.roles.subtitle')" />
 
     <AlertBanner v-if="store.error" variant="error" data-testid="roles-error">{{ store.error }}</AlertBanner>
     <AlertBanner v-if="store.notice" variant="success" data-testid="roles-notice">{{ store.notice }}</AlertBanner>
-    <LoadingState v-if="store.loading" data-testid="roles-loading">Loading roles…</LoadingState>
+    <LoadingState v-if="store.loading" data-testid="roles-loading">{{ t('admin.roles.loading') }}</LoadingState>
 
     <div class="role-cards">
       <div v-for="role in store.roles" :key="role.id" class="card role-card" data-testid="role-card">
@@ -64,13 +66,13 @@ const onSave = async (roleId: number): Promise<void> => {
             data-testid="save-role-button"
             @click="onSave(role.id)"
           >
-            Save
+            {{ t('common.actions.save') }}
           </button>
         </div>
 
         <div class="card-padded role-card-body">
           <AlertBanner v-if="role.key === 'SYSTEM_ADMINISTRATOR'" variant="warning" data-testid="admin-role-warning">
-            The System Administrator role must keep Users manage and Roles manage.
+            {{ t('admin.roles.adminWarning') }}
           </AlertBanner>
 
           <div class="permission-list">

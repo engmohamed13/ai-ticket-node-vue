@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import AppHeader from './components/AppHeader.vue';
 import AppSidebar from './components/AppSidebar.vue';
 import NotificationToasts from './components/NotificationToasts.vue';
@@ -10,6 +11,7 @@ import { useNotificationsStore } from './stores/notifications';
 const route = useRoute();
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
+const { t } = useI18n();
 const showShell = computed(() => route.meta.public !== true);
 
 /**
@@ -40,7 +42,7 @@ watch(
 </script>
 
 <template>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#main-content" class="skip-link">{{ t('common.a11y.skipToContent') }}</a>
   <div v-if="showShell" class="app-layout">
     <AppHeader @toggle-nav="navOpen = !navOpen" />
     <div class="app-body">

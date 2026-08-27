@@ -1,4 +1,8 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+</script>
 
 <template>
   <section class="state-page">
@@ -13,9 +17,11 @@
         />
         <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" />
       </svg>
-      <h2>Page not found</h2>
-      <p class="lead">The page you're looking for doesn't exist or may have moved.</p>
-      <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary">Go back home</RouterLink>
+      <h2>{{ t('auth.notFound.title') }}</h2>
+      <p class="lead">{{ t('auth.notFound.description') }}</p>
+      <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary">
+        {{ t('auth.notFound.goHome') }}
+      </RouterLink>
     </div>
   </section>
 </template>

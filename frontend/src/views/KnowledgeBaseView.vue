@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useKbStore } from '../stores/kb';
 import PageHeader from '../components/ui/PageHeader.vue';
@@ -10,6 +11,7 @@ import StatusBadge from '../components/ui/StatusBadge.vue';
 
 const store = useKbStore();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const canManage = computed(() => auth.can('kb:manage'));
 
@@ -40,10 +42,10 @@ onMounted(async () => {
 
 <template>
   <section class="view">
-    <PageHeader title="Knowledge Base" subtitle="Guides and answers to the questions we are asked most.">
+    <PageHeader :title="t('kb.title')" :subtitle="t('kb.subtitle')">
       <template #actions>
         <RouterLink v-if="canManage" class="btn btn-secondary" :to="{ name: 'kb-manage' }" data-testid="kb-manage-link">
-          Manage articles
+          {{ t('kb.manage.title') }}
         </RouterLink>
       </template>
     </PageHeader>
@@ -54,30 +56,30 @@ onMounted(async () => {
       <div class="card-padded">
         <form class="search-bar" data-testid="kb-search-form" @submit.prevent="onSearch">
           <div class="form-field search-field">
-            <label for="kb-search">Search articles</label>
+            <label for="kb-search">{{ t('kb.searchLabel') }}</label>
             <input
               id="kb-search"
               v-model="store.search"
               data-testid="kb-search-input"
               type="search"
-              placeholder="Try “sign in” or “priority”"
+              :placeholder="t('kb.searchPlaceholder')"
             />
           </div>
           <div class="form-field">
-            <label for="kb-category">Category</label>
+            <label for="kb-category">{{ t('kb.categoryLabel') }}</label>
             <select
               id="kb-category"
               v-model="store.categoryFilter"
               data-testid="kb-category-select"
               @change="onSearch"
             >
-              <option value="">All categories</option>
+              <option value="">{{ t('kb.allCategories') }}</option>
               <option v-for="category in store.categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
           </div>
-          <button class="btn btn-primary" type="submit" data-testid="kb-search-button">Search</button>
+          <button class="btn btn-primary" type="submit" data-testid="kb-search-button">{{ t('common.actions.search') }}</button>
           <button
             v-if="hasFilters"
             class="btn btn-ghost btn-sm"
@@ -85,7 +87,7 @@ onMounted(async () => {
             data-testid="kb-clear-filters-button"
             @click="store.clearFilters()"
           >
-            Clear
+            {{ t('common.actions.clear') }}
           </button>
         </form>
       </div>
@@ -94,7 +96,7 @@ onMounted(async () => {
     <div class="kb-layout">
       <aside class="card categories-rail">
         <div class="card-header">
-          <h3 class="card-title">Categories</h3>
+          <h3 class="card-title">{{ t('kb.categoriesTitle') }}</h3>
         </div>
         <div class="card-padded">
           <ul class="category-list" data-testid="kb-category-list">
@@ -106,7 +108,7 @@ onMounted(async () => {
                 data-testid="kb-category-all"
                 @click="onSelectCategory('')"
               >
-                All categories
+                {{ t('kb.allCategories') }}
               </button>
             </li>
             <li v-for="category in store.categories" :key="category.id">
@@ -130,12 +132,12 @@ onMounted(async () => {
 
       <div class="card articles-panel">
         <div class="card-padded">
-          <LoadingState v-if="store.loading" data-testid="kb-loading">Loading articles…</LoadingState>
+          <LoadingState v-if="store.loading" data-testid="kb-loading">{{ t('kb.loadingArticles') }}</LoadingState>
 
           <EmptyState
             v-else-if="!store.hasArticles"
-            title="No articles found"
-            description="Try a different search term, or clear the category filter."
+            :title="t('kb.emptyTitle')"
+            :description="t('kb.emptyDescription')"
             data-testid="kb-empty"
           />
 
@@ -151,9 +153,9 @@ onMounted(async () => {
               <p v-if="article.summary" class="article-summary">{{ article.summary }}</p>
               <p class="article-meta">
                 <StatusBadge variant="neutral">{{ article.category.name }}</StatusBadge>
-                <span>{{ article.viewCount }} views</span>
+                <span>{{ t('kb.views', { count: article.viewCount }) }}</span>
                 <StatusBadge v-if="!article.isPublished" variant="warning" data-testid="kb-draft-badge">
-                  Draft
+                  {{ t('kb.state.draft') }}
                 </StatusBadge>
               </p>
             </li>
@@ -208,7 +210,7 @@ onMounted(async () => {
   border: 0;
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.6rem;
-  text-align: left;
+  text-align: start;
   font-size: var(--font-sm);
   color: var(--slate-600);
   cursor: pointer;
@@ -234,7 +236,8 @@ onMounted(async () => {
 }
 
 .category-description {
-  margin: 0 0 0.4rem 0.6rem;
+  margin: 0 0 0.4rem;
+  margin-inline-start: 0.6rem;
   font-size: var(--font-sm);
   color: var(--text-subtle);
 }

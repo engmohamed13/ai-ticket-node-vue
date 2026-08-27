@@ -1,0 +1,37 @@
+{
+  "title": "الاتصالات",
+  "subtitle": "صندوق وارد موحّد لجميع القنوات، لكل عميل.",
+  "customerLabel": "العميل",
+  "createTitle": "إنشاء تفاعل أو استلامه",
+  "ticketPlaceholder": "غير مرتبط بتذكرة بعد",
+  "noTicketsHint": "لا توجد تذاكر لهذا العميل بعد — تبدأ التفاعلات الجديدة غير مرتبطة بأي تذكرة.",
+  "subjectPlaceholder": "سطر موضوع اختياري",
+  "submit": "حفظ التفاعل",
+  "fields": {
+    "channel": "القناة",
+    "direction": "الاتجاه",
+    "ticket": "التذكرة (اختياري)",
+    "subject": "الموضوع",
+    "message": "الرسالة"
+  },
+  "channels": {
+    "EMAIL": "البريد الإلكتروني",
+    "WHATSAPP": "واتساب",
+    "LIVE_CHAT": "الدردشة المباشرة",
+    "SMS": "الرسائل النصية",
+    "WEB_FORM": "نموذج الويب"
+  },
+  "directions": {
+    "INBOUND": "وارد",
+    "OUTBOUND": "صادر"
+  },
+  "timeline": {
+    "title": "الجدول الزمني الموحّد",
+    "loading": "جارٍ تحميل الجدول الزمني…",
+    "emptyTitle": "لا توجد تفاعلات بعد",
+    "emptyDescription": "ستظهر تفاعلات هذا العميل هنا عند ورودها.",
+    "ticketRef": "التذكرة رقم {id}",
+    "associatePlaceholder": "الربط بتذكرة…",
+    "associate": "ربط"
+  }
+}

@@ -55,6 +55,11 @@
   --surface-color: #ffffff;
   --surface-sunken: var(--slate-50);
 
+  /* Neutral chip / code / skeleton fill — re-pointed for dark mode so pills and
+     inline code never invert against the surface they sit on. */
+  --neutral-bg: var(--slate-100);
+  --neutral-fg: var(--slate-600);
+
   /* Spacing scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -63,17 +68,27 @@
   --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
 
   /* Radius */
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
   --radius-full: 9999px;
 
   /* Shadows — subtle, flat product feel */
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.12);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px rgba(15, 23, 42, 0.07), 0 2px 4px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px rgba(15, 23, 42, 0.1), 0 4px 6px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 20px 25px rgba(15, 23, 42, 0.1), 0 8px 10px rgba(15, 23, 42, 0.04);
+  --shadow-2xl: 0 25px 50px rgba(15, 23, 42, 0.15);
+  --shadow-inner: inset 0 2px 4px rgba(15, 23, 42, 0.05);
 
   /* Typography */
   --font-xs: 0.75rem;
@@ -82,14 +97,85 @@
   --font-lg: 1.0625rem;
   --font-xl: 1.25rem;
   --font-2xl: 1.625rem;
+  --font-3xl: 1.875rem;
+  --font-4xl: 2.25rem;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.04em;
 
   /* Motion */
   --transition-fast: 120ms ease;
   --transition: 180ms ease;
 
+  /* Focus / interaction state */
+  --focus-ring-color: var(--color-primary);
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  --opacity-disabled: 0.55;
+
   /* Layout */
   --header-height: 60px;
   --sidebar-width: 232px;
+
+  /*
+   * Writing-direction multiplier. Logical properties (margin-inline, inset-inline)
+   * cover almost everything, but a `transform: translateX()` has no logical form —
+   * multiply by this so off-screen slides leave towards the correct edge in RTL.
+   */
+  --dir: 1;
+}
+
+[dir='rtl'] {
+  --dir: -1;
+}
+
+/*
+ * System-preference dark theme. Only the semantic aliases are re-pointed — every
+ * component reads those, never a raw slate/hex, so the whole app follows. There is
+ * no in-app toggle by design; the OS setting is the single source of truth.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary-bg: #172554;
+    --color-primary-border: #1e3a8a;
+
+    --color-ok: #6ee7b7;
+    --color-ok-bg: #052e21;
+    --color-ok-border: #065f46;
+
+    --color-degraded: #fcd34d;
+    --color-degraded-bg: #3a2708;
+    --color-degraded-border: #92400e;
+
+    --color-down: #fca5a5;
+    --color-down-bg: #3f1414;
+    --color-down-border: #991b1b;
+
+    --color-info: #7dd3fc;
+    --color-info-bg: #082f43;
+    --color-info-border: #075985;
+
+    --text-main: var(--slate-100);
+    --text-muted: var(--slate-400);
+    --text-subtle: var(--slate-500);
+    --border-color: #26364d;
+    --border-color-strong: var(--slate-600);
+    --surface-color: #16202f;
+    --surface-sunken: #0d1420;
+
+    --neutral-bg: #22304a;
+    --neutral-fg: var(--slate-300);
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.24);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.45), 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5), 0 8px 10px rgba(0, 0, 0, 0.3);
+    --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.6);
+  }
 }
 
 *,
@@ -157,9 +243,9 @@ a {
 code {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 0.9em;
-  background-color: var(--slate-100);
+  background-color: var(--neutral-bg);
   padding: 0.1em 0.4em;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 hr {
@@ -173,7 +259,7 @@ hr {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--focus-ring-color);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -193,7 +279,7 @@ hr {
 .skip-link {
   position: absolute;
   top: -48px;
-  left: var(--space-4);
+  inset-inline-start: var(--space-4);
   z-index: 1000;
   background-color: var(--color-primary);
   color: #ffffff;
@@ -226,22 +312,28 @@ hr {
   border: 1px solid transparent;
   cursor: pointer;
   font-family: inherit;
-  line-height: 1.2;
+  line-height: var(--line-height-tight);
   transition:
     background-color var(--transition-fast),
     border-color var(--transition-fast),
     color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    box-shadow var(--transition-fast),
+    transform 60ms ease-out;
   white-space: nowrap;
+  user-select: none;
 }
 
 .btn svg {
   flex-shrink: 0;
 }
 
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 .btn:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: var(--opacity-disabled);
 }
 
 .btn-primary {
@@ -261,29 +353,29 @@ hr {
 }
 
 .btn-secondary {
-  background-color: #ffffff;
-  color: var(--slate-700);
+  background-color: var(--surface-color);
+  color: var(--text-main);
   border-color: var(--border-color-strong);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--slate-50);
+  background-color: var(--surface-sunken);
   border-color: var(--slate-400);
 }
 
 .btn-ghost {
   background-color: transparent;
-  color: var(--slate-600);
+  color: var(--text-muted);
   border-color: transparent;
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background-color: var(--slate-100);
+  background-color: var(--surface-sunken);
   color: var(--text-main);
 }
 
 .btn-danger {
-  background-color: #ffffff;
+  background-color: var(--surface-color);
   color: var(--color-down-solid);
   border-color: var(--color-down-border);
 }
@@ -293,15 +385,29 @@ hr {
   border-color: var(--color-down-solid);
 }
 
+.btn-xs {
+  padding: 0.3rem 0.55rem;
+  font-size: var(--font-xs);
+}
+
 .btn-sm {
   padding: 0.4rem 0.75rem;
   font-size: var(--font-xs);
+}
+
+.btn-lg {
+  padding: 0.75rem 1.4rem;
+  font-size: var(--font-base);
 }
 
 .btn-icon {
   padding: 0.5rem;
   width: 2.25rem;
   height: 2.25rem;
+}
+
+.btn-block {
+  width: 100%;
 }
 
 /* ==========================================================================
@@ -323,7 +429,7 @@ textarea {
   font-family: inherit;
   font-size: var(--font-base);
   color: var(--text-main);
-  background-color: #ffffff;
+  background-color: var(--surface-color);
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -346,13 +452,13 @@ select:focus-visible,
 textarea:focus-visible {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-bg);
+  box-shadow: var(--focus-ring);
 }
 
 input:disabled,
 select:disabled,
 textarea:disabled {
-  background-color: var(--slate-50);
+  background-color: var(--surface-sunken);
   color: var(--text-muted);
   cursor: not-allowed;
 }
@@ -391,6 +497,54 @@ textarea::placeholder {
   margin-top: var(--space-2);
 }
 
+/* Field-level validation states. Applied to the .form-field wrapper so the
+   label, control, and message all shift together. */
+.form-field-error input,
+.form-field-error select,
+.form-field-error textarea {
+  border-color: var(--color-down-solid);
+}
+
+.form-field-error input:focus-visible,
+.form-field-error select:focus-visible,
+.form-field-error textarea:focus-visible {
+  border-color: var(--color-down-solid);
+  box-shadow: 0 0 0 3px var(--color-down-bg);
+}
+
+.form-field-success input,
+.form-field-success select,
+.form-field-success textarea {
+  border-color: var(--color-ok-solid);
+}
+
+.form-field-success input:focus-visible,
+.form-field-success select:focus-visible,
+.form-field-success textarea:focus-visible {
+  border-color: var(--color-ok-solid);
+  box-shadow: 0 0 0 3px var(--color-ok-bg);
+}
+
+/* Validation message under a control. Pair with aria-describedby on the input. */
+.field-error {
+  font-size: var(--font-xs);
+  font-weight: 500;
+  color: var(--color-down);
+}
+
+.field-success {
+  font-size: var(--font-xs);
+  font-weight: 500;
+  color: var(--color-ok);
+}
+
+/* Marks a required control's label without relying on colour alone. */
+.field-required::after {
+  content: ' *';
+  color: var(--color-down-solid);
+  font-weight: 700;
+}
+
 @media (max-width: 640px) {
   .form-grid {
     grid-template-columns: 1fr;
@@ -411,9 +565,14 @@ textarea::placeholder {
   font-weight: 600;
   line-height: 1.6;
   white-space: nowrap;
-  background-color: var(--slate-100);
-  color: var(--slate-600);
+  background-color: var(--neutral-bg);
+  color: var(--neutral-fg);
   text-transform: capitalize;
+}
+
+.badge-sm {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.6875rem;
 }
 
 .badge::before {
@@ -426,8 +585,8 @@ textarea::placeholder {
 }
 
 .badge-neutral {
-  background-color: var(--slate-100);
-  color: var(--slate-600);
+  background-color: var(--neutral-bg);
+  color: var(--neutral-fg);
 }
 
 .badge-primary {
@@ -478,6 +637,25 @@ textarea::placeholder {
 .alert-body {
   flex: 1;
   min-width: 0;
+}
+
+.alert-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0.1rem;
+  margin: 0;
+  width: auto;
+  color: inherit;
+  opacity: 0.65;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: var(--radius-xs);
+  transition: opacity var(--transition-fast);
+}
+
+.alert-close:hover {
+  opacity: 1;
 }
 
 .alert-error {
@@ -553,6 +731,27 @@ textarea::placeholder {
   margin: 0;
 }
 
+.card-subtitle {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.card-compact {
+  padding: var(--space-4);
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--surface-sunken);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
 /* ==========================================================================
    Tables
    ========================================================================== */
@@ -574,16 +773,17 @@ table {
 thead th {
   position: sticky;
   top: 0;
-  text-align: left;
+  text-align: start;
   color: var(--text-muted);
   font-size: var(--font-xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: var(--letter-spacing-wide);
   padding: 0.75rem 1rem;
   background-color: var(--surface-sunken);
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
+  vertical-align: middle;
 }
 
 tbody td {
@@ -599,6 +799,85 @@ tbody tr:last-child td {
 
 tbody tr:hover {
   background-color: var(--surface-sunken);
+}
+
+/* Column alignment helpers — numeric data reads better right-aligned and
+   tabular, and both are direction-aware for RTL. */
+.cell-numeric {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-center {
+  text-align: center;
+}
+
+.cell-actions {
+  text-align: end;
+  white-space: nowrap;
+}
+
+/* Sortable column header — a button inside the th keeps it keyboard-reachable. */
+.th-sortable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  width: auto;
+}
+
+.th-sortable:hover {
+  color: var(--text-main);
+}
+
+.th-sortable[aria-sort='ascending'],
+.th-sortable[aria-sort='descending'] {
+  color: var(--color-primary);
+}
+
+.sort-indicator {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.th-sortable[aria-sort='ascending'] .sort-indicator,
+.th-sortable[aria-sort='descending'] .sort-indicator {
+  opacity: 1;
+}
+
+/* Full-width row used for the in-table empty/loading message. */
+.table-message {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Pagination bar under a table. */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--surface-sunken);
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* ==========================================================================
@@ -633,7 +912,7 @@ tbody tr:hover {
 .skeleton {
   position: relative;
   overflow: hidden;
-  background-color: var(--slate-100);
+  background-color: var(--neutral-bg);
   border-radius: var(--radius-sm);
 }
 
@@ -641,14 +920,53 @@ tbody tr:hover {
   content: '';
   position: absolute;
   inset: 0;
-  transform: translateX(-100%);
+  /* Starts off the inline-start edge and sweeps towards inline-end, so the shimmer
+     travels in the reading direction under RTL as well as LTR. */
+  transform: translateX(calc(-100% * var(--dir, 1)));
+  /* Symmetric sweep, so the 90deg axis reads the same either way — only the
+     translate below needs to know about direction. Logical direction keywords are
+     not valid in gradients, so this stays physical on purpose. */
   background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
   animation: shimmer 1.4s ease-in-out infinite;
 }
 
+/* Skeleton building blocks — LoadingState composes these. */
+.skeleton-text {
+  height: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+
+.skeleton-text:last-child {
+  margin-bottom: 0;
+  width: 60%;
+}
+
+.skeleton-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.skeleton-row:last-child {
+  border-bottom: none;
+}
+
+.skeleton-cell {
+  height: 0.85rem;
+  flex: 1;
+}
+
 @keyframes shimmer {
   100% {
-    transform: translateX(100%);
+    transform: translateX(calc(100% * var(--dir, 1)));
   }
 }
 
@@ -657,6 +975,12 @@ tbody tr:hover {
     animation-duration: 1.4s;
   }
   .skeleton::after {
+    animation: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+  .dialog {
     animation: none;
   }
 }
@@ -718,4 +1042,212 @@ tbody tr:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+}
+
+/* ==========================================================================
+   Dialogs / modals
+   ========================================================================== */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: rgba(15, 23, 42, 0.55);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - var(--space-8));
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  animation: dialog-in var(--transition) ease-out;
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dialog-title {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  margin: 0;
+}
+
+.dialog-description {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.dialog-body {
+  padding: var(--space-5) var(--space-6);
+  overflow-y: auto;
+}
+
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--surface-sunken);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Filter / toolbar row above a table
+   ========================================================================== */
+
+.toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.toolbar > .form-field {
+  min-width: 180px;
+  flex: 1 1 180px;
+}
+
+.toolbar-search {
+  flex: 2 1 260px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-subtle {
+  color: var(--text-subtle);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-end {
+  text-align: end;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.row-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Responsive visibility
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .hide-sm {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .hide-md {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Print — drop the chrome, keep the content
+   ========================================================================== */
+
+@media print {
+  .app-header,
+  .app-sidebar,
+  .hide-print {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff;
+  }
+
+  .card,
+  .table-wrapper {
+    box-shadow: none;
+    break-inside: avoid;
+  }
 }

@@ -1,0 +1,83 @@
+{
+  "title": "Tickets",
+  "subtitle": "Your queue, the open backlog, and anything past its SLA.",
+  "newTicket": "New ticket",
+  "createSubmit": "Create ticket",
+  "selectCustomer": "Select a customer…",
+  "noCategory": "No category",
+  "allStatuses": "All statuses",
+  "allPriorities": "All priorities",
+  "allCategories": "All categories",
+  "clearFilters": "Clear filters",
+  "loading": "Loading tickets…",
+  "emptyTitle": "No tickets here",
+  "emptyDescription": "Nothing matches this queue and filter combination.",
+  "unassigned": "Unassigned",
+  "claim": "Claim",
+  "fields": {
+    "subject": "Subject",
+    "status": "Status",
+    "priority": "Priority",
+    "category": "Category",
+    "assignee": "Assignee",
+    "sla": "SLA",
+    "created": "Created",
+    "customer": "Customer",
+    "lastUpdated": "Last updated",
+    "actions": "Actions"
+  },
+  "scopes": {
+    "mine": "My Tickets",
+    "open": "Open Tickets",
+    "pending": "Pending Tickets",
+    "overdue": "Overdue Tickets",
+    "unassigned": "Unassigned",
+    "all": "All Tickets"
+  },
+  "status": {
+    "New": "New",
+    "Open": "Open",
+    "In Progress": "In Progress",
+    "Pending": "Pending",
+    "Resolved": "Resolved",
+    "Closed": "Closed"
+  },
+  "priority": {
+    "Low": "Low",
+    "Medium": "Medium",
+    "High": "High",
+    "Urgent": "Urgent"
+  },
+  "channels": {
+    "EMAIL": "EMAIL",
+    "WHATSAPP": "WHATSAPP",
+    "LIVE_CHAT": "LIVE_CHAT",
+    "SMS": "SMS",
+    "WEB_FORM": "WEB_FORM"
+  },
+  "directions": {
+    "INBOUND": "INBOUND",
+    "OUTBOUND": "OUTBOUND"
+  },
+  "detail": {
+    "titleFallback": "Ticket",
+    "subtitle": "Workflow, SLA, internal comments, attachments, and the full communication history.",
+    "backToTickets": "Back to tickets",
+    "loading": "Loading ticket…",
+    "notFoundTitle": "Ticket not found",
+    "notFoundDescription": "It may have been removed, or the link is incorrect.",
+    "workflow": "Workflow",
+    "assignToMe": "Assign to me",
+    "attachments": "Attachments",
+    "upload": "Upload",
+    "noAttachments": "No attachments yet",
+    "download": "Download",
+    "fileSize": "{size} KB",
+    "timelineTitle": "Communication timeline",
+    "commentPlaceholder": "Add an internal comment…",
+    "addComment": "Add comment",
+    "timelineEmptyTitle": "Nothing here yet",
+    "timelineEmptyDescription": "Customer interactions and internal comments will appear together in this thread.",
+    "internalNote": "Internal note"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "title": "العملاء",
+  "subtitle": "دليل العملاء وبيانات التواصل والحالة.",
+  "searchLabel": "بحث",
+  "searchPlaceholder": "الاسم أو البريد الإلكتروني أو الهاتف أو الشركة",
+  "statusLabel": "الحالة",
+  "allStatuses": "جميع الحالات",
+  "createTitle": "إنشاء عميل",
+  "createSubmit": "إنشاء عميل",
+  "readOnlyHint": "لديك صلاحية القراءة فقط لدليل العملاء.",
+  "loading": "جارٍ تحميل العملاء…",
+  "emptyTitle": "لا يوجد عملاء بعد",
+  "emptyDescription": "سيظهر العملاء الذين تنشئهم هنا في هذه القائمة.",
+  "fields": {
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "company": "الشركة",
+    "address": "العنوان",
+    "city": "المدينة",
+    "country": "الدولة",
+    "status": "الحالة",
+    "created": "تاريخ الإنشاء",
+    "subject": "الموضوع"
+  },
+  "status": {
+    "ACTIVE": "نشط",
+    "PROSPECT": "عميل محتمل",
+    "INACTIVE": "غير نشط",
+    "ARCHIVED": "مؤرشف"
+  },
+  "channels": {
+    "EMAIL": "البريد الإلكتروني",
+    "WHATSAPP": "واتساب",
+    "LIVE_CHAT": "الدردشة المباشرة",
+    "SMS": "الرسائل النصية",
+    "WEB_FORM": "نموذج الويب"
+  },
+  "directions": {
+    "INBOUND": "وارد",
+    "OUTBOUND": "صادر"
+  },
+  "detail": {
+    "titleFallback": "عميل",
+    "subtitle": "بيانات العميل والملاحظات والمرفقات والسجل.",
+    "loading": "جارٍ تحميل العميل…",
+    "notFoundTitle": "لم يتم العثور على العميل",
+    "notFoundDescription": "ربما تم حذفه، أو أن الرابط غير صحيح.",
+    "backToCustomers": "العودة إلى العملاء",
+    "profile": "بيانات العميل",
+    "notes": "الملاحظات",
+    "notePlaceholder": "أضف ملاحظة…",
+    "addNote": "إضافة ملاحظة",
+    "noNotes": "لا توجد ملاحظات بعد",
+    "attachments": "المرفقات",
+    "upload": "رفع",
+    "download": "تنزيل",
+    "noAttachments": "لا توجد مرفقات بعد",
+    "fileSize": "{size} كيلوبايت",
+    "tickets": "التذاكر",
+    "noTickets": "لا توجد تذاكر بعد",
+    "timelineTitle": "سجل التفاعلات",
+    "timelineEmptyTitle": "لا توجد تفاعلات بعد",
+    "timelineEmptyDescription": "ستظهر تفاعلات هذا العميل هنا عند ورودها.",
+    "ticketRef": "التذكرة رقم {id}"
+  }
+}

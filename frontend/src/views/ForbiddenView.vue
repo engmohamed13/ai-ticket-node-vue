@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 
 const auth = useAuthStore();
+const { t } = useI18n();
+
+const roleName = computed(() => auth.user?.roleName ?? t('auth.forbidden.unknownRole'));
 </script>
 
 <template>
@@ -11,12 +16,17 @@ const auth = useAuthStore();
         <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" />
         <path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
       </svg>
-      <h2>Access denied</h2>
-      <p class="lead">
-        Your role <strong>{{ auth.user?.roleName ?? 'unknown' }}</strong> does not have permission to
-        open that screen. Contact a System Administrator if you need access.
-      </p>
-      <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary">Back to Dashboard</RouterLink>
+      <h2>{{ t('auth.forbidden.title') }}</h2>
+      <!-- One translatable sentence with the role as a slot, so Arabic can put the
+           role wherever its grammar needs it rather than mid-string. -->
+      <i18n-t keypath="auth.forbidden.description" tag="p" class="lead" scope="global">
+        <template #role>
+          <strong>{{ roleName }}</strong>
+        </template>
+      </i18n-t>
+      <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary">
+        {{ t('auth.forbidden.backToDashboard') }}
+      </RouterLink>
     </div>
   </section>
 </template>

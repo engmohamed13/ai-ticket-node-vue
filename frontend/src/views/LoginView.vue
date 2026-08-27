@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import AlertBanner from '../components/ui/AlertBanner.vue';
+import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
 const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
+
+const DEMO_PASSWORD = 'Passw0rd!';
+const DEMO_ACCOUNTS = [
+  'admin@crm.local',
+  'manager@crm.local',
+  'supervisor@crm.local',
+  'agent@crm.local',
+  'reports@crm.local',
+  'demo.customer@example.com'
+];
 
 const email = ref('');
 const password = ref('');
@@ -26,51 +39,56 @@ const onSubmit = async (): Promise<void> => {
 <template>
   <div class="login-page">
     <form class="login-card card" data-testid="login-form" @submit.prevent="onSubmit">
-      <div class="login-brand">
-        <span class="brand-mark" aria-hidden="true">CS</span>
-        <h1>CustomerSupportCRM</h1>
+      <div class="login-top">
+        <div class="login-brand">
+          <span class="brand-mark" aria-hidden="true">{{ t('common.brandMark') }}</span>
+          <h1>{{ t('common.appName') }}</h1>
+        </div>
+        <LanguageSwitcher />
       </div>
-      <p class="subtitle">Sign in to continue to your workspace</p>
+      <p class="subtitle">{{ t('auth.subtitle') }}</p>
 
       <AlertBanner v-if="auth.error" variant="error" data-testid="login-error">{{ auth.error }}</AlertBanner>
 
       <div class="form-field">
-        <label for="login-email">Email</label>
+        <label for="login-email">{{ t('auth.email') }}</label>
         <input
           id="login-email"
           v-model="email"
           data-testid="login-email"
           type="email"
           autocomplete="username"
-          placeholder="you@company.com"
+          :placeholder="t('auth.emailPlaceholder')"
           required
         />
       </div>
 
       <div class="form-field">
-        <label for="login-password">Password</label>
+        <label for="login-password">{{ t('auth.password') }}</label>
         <input
           id="login-password"
           v-model="password"
           data-testid="login-password"
           type="password"
           autocomplete="current-password"
-          placeholder="••••••••"
+          :placeholder="t('auth.passwordPlaceholder')"
           required
         />
       </div>
 
       <button class="btn btn-primary login-submit" type="submit" data-testid="login-submit" :disabled="auth.loading">
         <span v-if="auth.loading" class="spinner" aria-hidden="true"></span>
-        {{ auth.loading ? 'Signing in…' : 'Sign in' }}
+        {{ auth.loading ? t('auth.signingIn') : t('auth.signIn') }}
       </button>
 
       <!-- TODO: demo-only copy — remove this hint before any non-demo deployment. -->
       <div class="demo-hint">
-        <strong>Demo accounts</strong> (password <code>Passw0rd!</code>)
+        <strong>{{ t('auth.demoAccounts') }}</strong>
+        ({{ t('auth.demoPasswordLabel') }} <code>{{ DEMO_PASSWORD }}</code>)
         <p>
-          <code>admin@crm.local</code>, <code>manager@crm.local</code>, <code>supervisor@crm.local</code>,
-          <code>agent@crm.local</code>, <code>reports@crm.local</code>, <code>demo.customer@example.com</code>
+          <template v-for="(account, index) in DEMO_ACCOUNTS" :key="account">
+            <code>{{ account }}</code><span v-if="index < DEMO_ACCOUNTS.length - 1">, </span>
+          </template>
         </p>
       </div>
     </form>
@@ -96,10 +114,18 @@ const onSubmit = async (): Promise<void> => {
   padding: var(--space-8) var(--space-6);
 }
 
+.login-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .login-brand {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  min-width: 0;
 }
 
 .login-brand h1 {

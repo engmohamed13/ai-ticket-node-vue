@@ -1,0 +1,38 @@
+{
+  "title": "الإشعارات",
+  "bellLabel": "الإشعارات",
+  "bellLabelUnread": "الإشعارات، {count} غير مقروء",
+  "markAllRead": "تحديد الكل كمقروء",
+  "markRead": "تحديد كمقروء",
+  "unreadOnly": "غير المقروءة فقط",
+  "emptyTitle": "لا توجد إشعارات بعد",
+  "emptyUnreadTitle": "لا توجد إشعارات غير مقروءة",
+  "emptyDescription": "تظهر هنا الإسنادات وتغييرات الحالة والتعليقات وتجاوزات اتفاقية مستوى الخدمة وملاحظات العملاء.",
+  "openTicket": "فتح التذكرة رقم {id}",
+  "dismissToast": "تجاهل الإشعار",
+  "types": {
+    "ticket_assigned": "إسناد",
+    "ticket_status_changed": "الحالة",
+    "ticket_comment": "تعليق",
+    "ticket_overdue": "متأخر",
+    "feedback_received": "ملاحظات"
+  },
+  "sla": {
+    "firstResponse": "أول استجابة",
+    "resolution": "الحل",
+    "noTarget": "لا يوجد هدف",
+    "target": "الهدف {target}",
+    "elapsedOfTarget": "{elapsed} من {target}",
+    "overall": {
+      "met": "في الوقت المحدد",
+      "overdue": "متأخر",
+      "due": "داخل اتفاقية مستوى الخدمة",
+      "none": "لا توجد اتفاقية مستوى خدمة"
+    },
+    "state": {
+      "met": "مُستوفى",
+      "overdue": "متأخر",
+      "due": "قيد الانتظار"
+    }
+  }
+}

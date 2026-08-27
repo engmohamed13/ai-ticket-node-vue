@@ -1,0 +1,53 @@
+{
+  "title": "تذاكري",
+  "subtitle": "تابع طلبات الدعم الخاصة بك وقيّم الطلبات التي أغلقناها.",
+  "loading": "جارٍ تحميل تذاكرك…",
+  "emptyTitle": "لا توجد تذاكر بعد",
+  "emptyDescription": "عند تواصلك مع فريق الدعم لدينا، ستظهر طلباتك هنا.",
+  "leaveFeedback": "أضف تقييمك",
+  "summary": {
+    "total": "الإجمالي",
+    "open": "مفتوحة",
+    "awaitingReply": "بانتظار ردك",
+    "resolved": "تم حلها",
+    "awaitingFeedback": "بانتظار التقييم"
+  },
+  "columns": {
+    "subject": "الموضوع",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "category": "الفئة",
+    "opened": "تاريخ الفتح",
+    "feedback": "التقييم"
+  },
+  "detail": {
+    "fallbackTitle": "تذكرة",
+    "subtitle": "الحالة الحالية لطلبك، وتقييمك له بعد إغلاقه.",
+    "backToList": "الرجوع إلى تذاكري",
+    "loading": "جارٍ تحميل هذه التذكرة…",
+    "missingTitle": "لم يتم العثور على التذكرة",
+    "missingDescription": "ربما تم حذفها، أو أن الرابط غير صحيح.",
+    "requestDetails": "تفاصيل الطلب",
+    "fields": {
+      "reference": "الرقم المرجعي",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "category": "الفئة",
+      "opened": "تاريخ الفتح",
+      "lastUpdated": "آخر تحديث",
+      "resolved": "تاريخ الحل"
+    }
+  },
+  "feedback": {
+    "title": "تقييمك",
+    "noComment": "لا توجد ملاحظات إضافية.",
+    "submittedAt": "تم الإرسال في {date}",
+    "prompt": "كيف كان أداؤنا؟",
+    "starAriaLabel": "{value} من {max}",
+    "pickRating": "اختر تقييمًا",
+    "commentLabel": "هل تود إضافة أي ملاحظات؟ (اختياري)",
+    "submit": "إرسال التقييم",
+    "submitting": "جارٍ الإرسال…",
+    "locked": "سيكون بإمكانك تقييم هذا الطلب بعد حله."
+  }
+}

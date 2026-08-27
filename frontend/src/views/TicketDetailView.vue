@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useTicketsStore } from '../stores/tickets';
 import { fetchUsers } from '../services/users.service';
@@ -19,6 +20,13 @@ const POLL_INTERVAL_MS = 30_000;
 const route = useRoute();
 const store = useTicketsStore();
 const auth = useAuthStore();
+const { t, locale } = useI18n();
+
+/** Enum value → translated label. The value stays the wire format; only the label changes. */
+const statusLabel = (value: TicketStatus): string => t(`tickets.status.${value}`);
+const priorityLabel = (value: TicketPriority): string => t(`tickets.priority.${value}`);
+const channelLabel = (value: string): string => t(`tickets.channels.${value}`);
+const directionLabel = (value: string): string => t(`tickets.directions.${value}`);
 
 const ticketId = computed(() => Number(route.params.id));
 const canManage = computed(() => auth.can('tickets:manage'));
@@ -173,8 +181,9 @@ const unifiedTimeline = computed<TimelineEntry[]>(() => {
 const isTimelineEmpty = computed(() => unifiedTimeline.value.length === 0);
 const isAttachmentsEmpty = computed(() => (ticket.value?.attachments.length ?? 0) === 0);
 
-const formatDateTime = (value: string): string => new Date(value).toLocaleString();
-const formatSize = (sizeBytes: number): string => `${(sizeBytes / 1024).toFixed(1)} KB`;
+const formatDateTime = (value: string): string => new Date(value).toLocaleString(locale.value);
+const formatSize = (sizeBytes: number): string =>
+  t('tickets.detail.fileSize', { size: (sizeBytes / 1024).toFixed(1) });
 const directionVariant = (value: string) => (value === 'INBOUND' ? 'info' : 'primary');
 
 // --- Lifecycle -----------------------------------------------------------------
@@ -210,12 +219,12 @@ onUnmounted(() => {
 <template>
   <section class="view">
     <PageHeader
-      :title="ticket ? `#${ticket.id} · ${ticket.subject}` : 'Ticket'"
-      subtitle="Workflow, SLA, internal comments, attachments, and the full communication history."
+      :title="ticket ? `#${ticket.id} · ${ticket.subject}` : t('tickets.detail.titleFallback')"
+      :subtitle="t('tickets.detail.subtitle')"
     >
       <template #actions>
         <RouterLink class="btn btn-secondary" :to="{ name: 'tickets' }" data-testid="back-to-tickets-link">
-          Back to tickets
+          {{ t('tickets.detail.backToTickets') }}
         </RouterLink>
       </template>
     </PageHeader>
@@ -223,23 +232,27 @@ onUnmounted(() => {
     <AlertBanner v-if="store.error" variant="error" data-testid="ticket-detail-error">{{ store.error }}</AlertBanner>
     <AlertBanner v-if="store.notice" variant="success" data-testid="ticket-detail-notice">{{ store.notice }}</AlertBanner>
 
-    <LoadingState v-if="store.detailLoading" data-testid="ticket-detail-loading">Loading ticket…</LoadingState>
+    <LoadingState v-if="store.detailLoading" data-testid="ticket-detail-loading">
+      {{ t('tickets.detail.loading') }}
+    </LoadingState>
 
     <EmptyState
       v-else-if="!ticket"
-      title="Ticket not found"
-      description="It may have been removed, or the link is incorrect."
+      :title="t('tickets.detail.notFoundTitle')"
+      :description="t('tickets.detail.notFoundDescription')"
       data-testid="ticket-not-found"
     >
       <template #actions>
-        <RouterLink class="btn btn-secondary" :to="{ name: 'tickets' }">Back to tickets</RouterLink>
+        <RouterLink class="btn btn-secondary" :to="{ name: 'tickets' }">
+          {{ t('tickets.detail.backToTickets') }}
+        </RouterLink>
       </template>
     </EmptyState>
 
     <template v-else>
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Workflow</h3>
+          <h3 class="card-title">{{ t('tickets.detail.workflow') }}</h3>
           <button
             v-if="canManage && ticket.assignedToUserId === null"
             class="btn btn-secondary btn-sm"
@@ -247,57 +260,59 @@ onUnmounted(() => {
             data-testid="claim-ticket-button"
             @click="onClaim"
           >
-            Assign to me
+            {{ t('tickets.detail.assignToMe') }}
           </button>
         </div>
 
         <div class="card-padded">
           <div v-if="canManage" class="form-grid" data-testid="ticket-workflow-form">
             <div class="form-field">
-              <label for="ticket-status">Status</label>
+              <label for="ticket-status">{{ t('tickets.fields.status') }}</label>
               <select
                 id="ticket-status"
                 :value="ticket.status"
                 data-testid="ticket-status-select"
                 @change="onChangeStatus"
               >
-                <option v-for="value in TICKET_STATUSES" :key="value" :value="value">{{ value }}</option>
+                <option v-for="value in TICKET_STATUSES" :key="value" :value="value">{{ statusLabel(value) }}</option>
               </select>
             </div>
             <div class="form-field">
-              <label for="ticket-priority">Priority</label>
+              <label for="ticket-priority">{{ t('tickets.fields.priority') }}</label>
               <select
                 id="ticket-priority"
                 :value="ticket.priority"
                 data-testid="ticket-priority-select"
                 @change="onChangePriority"
               >
-                <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">{{ value }}</option>
+                <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">
+                  {{ priorityLabel(value) }}
+                </option>
               </select>
             </div>
             <div class="form-field">
-              <label for="ticket-category">Category</label>
+              <label for="ticket-category">{{ t('tickets.fields.category') }}</label>
               <select
                 id="ticket-category"
                 :value="ticket.categoryId ?? ''"
                 data-testid="ticket-category-select"
                 @change="onChangeCategory"
               >
-                <option value="">No category</option>
+                <option value="">{{ t('tickets.noCategory') }}</option>
                 <option v-for="category in store.categories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </select>
             </div>
             <div v-if="canSeeAgents" class="form-field">
-              <label for="ticket-assignee">Assignee</label>
+              <label for="ticket-assignee">{{ t('tickets.fields.assignee') }}</label>
               <select
                 id="ticket-assignee"
                 :value="ticket.assignedToUserId ?? ''"
                 data-testid="ticket-assignee-select"
                 @change="onChangeAssignee"
               >
-                <option value="">Unassigned</option>
+                <option value="">{{ t('tickets.unassigned') }}</option>
                 <option v-for="agent in agents" :key="agent.id" :value="agent.id">{{ agent.name }}</option>
               </select>
             </div>
@@ -305,26 +320,26 @@ onUnmounted(() => {
 
           <div v-else class="profile-grid" data-testid="ticket-workflow-readonly">
             <div class="profile-field">
-              <span class="profile-label">Status</span>
-              <StatusBadge :variant="statusVariant(ticket.status)">{{ ticket.status }}</StatusBadge>
+              <span class="profile-label">{{ t('tickets.fields.status') }}</span>
+              <StatusBadge :variant="statusVariant(ticket.status)">{{ statusLabel(ticket.status) }}</StatusBadge>
             </div>
             <div class="profile-field">
-              <span class="profile-label">Priority</span>
-              <StatusBadge :variant="priorityVariant(ticket.priority)">{{ ticket.priority }}</StatusBadge>
+              <span class="profile-label">{{ t('tickets.fields.priority') }}</span>
+              <StatusBadge :variant="priorityVariant(ticket.priority)">{{ priorityLabel(ticket.priority) }}</StatusBadge>
             </div>
             <div class="profile-field">
-              <span class="profile-label">Category</span>
-              <span>{{ ticket.category?.name ?? '—' }}</span>
+              <span class="profile-label">{{ t('tickets.fields.category') }}</span>
+              <span>{{ ticket.category?.name ?? t('common.states.none') }}</span>
             </div>
             <div class="profile-field">
-              <span class="profile-label">Assignee</span>
-              <span>{{ ticket.assignedTo?.name ?? 'Unassigned' }}</span>
+              <span class="profile-label">{{ t('tickets.fields.assignee') }}</span>
+              <span>{{ ticket.assignedTo?.name ?? t('tickets.unassigned') }}</span>
             </div>
           </div>
 
           <div class="profile-grid meta-grid">
             <div class="profile-field">
-              <span class="profile-label">Customer</span>
+              <span class="profile-label">{{ t('tickets.fields.customer') }}</span>
               <RouterLink
                 class="customer-link"
                 :to="{ name: 'customer-detail', params: { id: ticket.customerId } }"
@@ -334,11 +349,11 @@ onUnmounted(() => {
               </RouterLink>
             </div>
             <div class="profile-field">
-              <span class="profile-label">Created</span>
+              <span class="profile-label">{{ t('tickets.fields.created') }}</span>
               <span>{{ formatDateTime(ticket.createdAt) }}</span>
             </div>
             <div class="profile-field">
-              <span class="profile-label">Last updated</span>
+              <span class="profile-label">{{ t('tickets.fields.lastUpdated') }}</span>
               <span>{{ formatDateTime(ticket.updatedAt) }}</span>
             </div>
           </div>
@@ -347,7 +362,7 @@ onUnmounted(() => {
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">SLA</h3>
+          <h3 class="card-title">{{ t('tickets.fields.sla') }}</h3>
         </div>
         <div class="card-padded">
           <SlaIndicator :ticket="ticket" />
@@ -356,7 +371,7 @@ onUnmounted(() => {
 
       <div v-if="canManage" class="card">
         <div class="card-header">
-          <h3 class="card-title">Attachments</h3>
+          <h3 class="card-title">{{ t('tickets.detail.attachments') }}</h3>
         </div>
         <div class="card-padded">
           <div class="attachment-form">
@@ -367,11 +382,11 @@ onUnmounted(() => {
               data-testid="upload-attachment-button"
               @click="onUploadAttachment"
             >
-              Upload
+              {{ t('tickets.detail.upload') }}
             </button>
           </div>
 
-          <EmptyState v-if="isAttachmentsEmpty" title="No attachments yet" />
+          <EmptyState v-if="isAttachmentsEmpty" :title="t('tickets.detail.noAttachments')" />
           <ul v-else class="attachments-list" data-testid="attachments-list">
             <li
               v-for="attachment in ticket.attachments"
@@ -387,7 +402,7 @@ onUnmounted(() => {
                 data-testid="download-attachment-button"
                 @click="onDownloadAttachment(attachment)"
               >
-                Download
+                {{ t('tickets.detail.download') }}
               </button>
               <button
                 class="btn btn-danger btn-sm"
@@ -395,7 +410,7 @@ onUnmounted(() => {
                 data-testid="delete-attachment-button"
                 @click="onDeleteAttachment(attachment.id)"
               >
-                Delete
+                {{ t('common.actions.delete') }}
               </button>
             </li>
           </ul>
@@ -404,7 +419,7 @@ onUnmounted(() => {
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Communication timeline</h3>
+          <h3 class="card-title">{{ t('tickets.detail.timelineTitle') }}</h3>
         </div>
         <div class="card-padded">
           <form v-if="canManage" class="comment-form" data-testid="add-comment-form" @submit.prevent="onAddComment">
@@ -412,17 +427,17 @@ onUnmounted(() => {
               v-model="commentBody"
               data-testid="comment-body-input"
               rows="3"
-              placeholder="Add an internal comment…"
+              :placeholder="t('tickets.detail.commentPlaceholder')"
             ></textarea>
             <button class="btn btn-primary btn-sm" type="submit" data-testid="add-comment-button">
-              Add comment
+              {{ t('tickets.detail.addComment') }}
             </button>
           </form>
 
           <EmptyState
             v-if="isTimelineEmpty"
-            title="Nothing here yet"
-            description="Customer interactions and internal comments will appear together in this thread."
+            :title="t('tickets.detail.timelineEmptyTitle')"
+            :description="t('tickets.detail.timelineEmptyDescription')"
           />
           <ul v-else class="timeline" data-testid="unified-timeline">
             <li
@@ -434,12 +449,14 @@ onUnmounted(() => {
             >
               <div class="timeline-meta">
                 <template v-if="entry.kind === 'comment'">
-                  <StatusBadge variant="neutral">Internal note</StatusBadge>
+                  <StatusBadge variant="neutral">{{ t('tickets.detail.internalNote') }}</StatusBadge>
                   <span class="entry-author">{{ entry.author }}</span>
                 </template>
                 <template v-else>
-                  <StatusBadge variant="primary">{{ entry.channel }}</StatusBadge>
-                  <StatusBadge :variant="directionVariant(entry.direction)">{{ entry.direction }}</StatusBadge>
+                  <StatusBadge variant="primary">{{ channelLabel(entry.channel) }}</StatusBadge>
+                  <StatusBadge :variant="directionVariant(entry.direction)">
+                    {{ directionLabel(entry.direction) }}
+                  </StatusBadge>
                 </template>
                 <span class="occurred-at">{{ formatDateTime(entry.at) }}</span>
               </div>
@@ -543,8 +560,9 @@ onUnmounted(() => {
 
 .timeline-item {
   border-bottom: 1px solid var(--border-color);
-  padding: var(--space-3) 0 var(--space-3) var(--space-3);
-  border-left: 3px solid transparent;
+  padding: var(--space-3) 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid transparent;
 }
 
 .timeline-item:last-child {
@@ -553,12 +571,12 @@ onUnmounted(() => {
 }
 
 .timeline-item.is-comment {
-  border-left-color: var(--slate-300);
+  border-inline-start-color: var(--slate-300);
   background-color: var(--surface-sunken);
 }
 
 .timeline-item.is-interaction {
-  border-left-color: var(--color-primary-border);
+  border-inline-start-color: var(--color-primary-border);
 }
 
 .timeline-meta {

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
-import { TICKET_SCOPES, TICKET_SCOPE_LABELS, useTicketsStore } from '../stores/tickets';
+import { TICKET_SCOPES, useTicketsStore } from '../stores/tickets';
 import type { TicketScope } from '../stores/tickets';
 import { isTicketOverdue } from '../services/ticketSla';
 import { fetchCustomers } from '../services/customers.service';
@@ -19,8 +20,14 @@ const POLL_INTERVAL_MS = 30_000;
 
 const store = useTicketsStore();
 const auth = useAuthStore();
+const { t, locale } = useI18n();
 
 const canManage = computed(() => auth.can('tickets:manage'));
+
+/** Enum value → translated label. The value stays the wire format; only the label changes. */
+const statusLabel = (value: Ticket['status']): string => t(`tickets.status.${value}`);
+const priorityLabel = (value: TicketPriority): string => t(`tickets.priority.${value}`);
+const scopeLabel = (value: TicketScope): string => t(`tickets.scopes.${value}`);
 
 const statusVariant = (status: Ticket['status']): 'success' | 'neutral' | 'primary' | 'warning' | 'info' => {
   switch (status) {
@@ -111,7 +118,7 @@ const onClaim = async (ticketId: number): Promise<void> => {
   await store.claimTicket(ticketId);
 };
 
-const formatDate = (value: string): string => new Date(value).toLocaleDateString();
+const formatDate = (value: string): string => new Date(value).toLocaleDateString(locale.value);
 
 // --- Polling ------------------------------------------------------------------
 let pollTimer: ReturnType<typeof setInterval> | undefined;
@@ -130,7 +137,7 @@ onUnmounted(() => {
 
 <template>
   <section class="view">
-    <PageHeader title="Tickets" subtitle="Your queue, the open backlog, and anything past its SLA.">
+    <PageHeader :title="t('tickets.title')" :subtitle="t('tickets.subtitle')">
       <template #actions>
         <button
           v-if="canManage && !isCreating"
@@ -139,7 +146,7 @@ onUnmounted(() => {
           data-testid="new-ticket-button"
           @click="onStartCreate"
         >
-          New ticket
+          {{ t('tickets.newTicket') }}
         </button>
       </template>
     </PageHeader>
@@ -149,12 +156,12 @@ onUnmounted(() => {
 
     <div v-if="isCreating" class="card">
       <div class="card-header">
-        <h3 class="card-title">New ticket</h3>
+        <h3 class="card-title">{{ t('tickets.newTicket') }}</h3>
       </div>
       <form class="card-padded" data-testid="create-ticket-form" @submit.prevent="onSubmitCreate">
         <div class="form-grid">
           <div class="form-field">
-            <label for="new-ticket-subject">Subject</label>
+            <label for="new-ticket-subject">{{ t('tickets.fields.subject') }}</label>
             <input
               id="new-ticket-subject"
               v-model="newSubject"
@@ -165,29 +172,29 @@ onUnmounted(() => {
             />
           </div>
           <div class="form-field">
-            <label for="new-ticket-customer">Customer</label>
+            <label for="new-ticket-customer">{{ t('tickets.fields.customer') }}</label>
             <select
               id="new-ticket-customer"
               v-model="newCustomerId"
               data-testid="new-ticket-customer-select"
               required
             >
-              <option value="">Select a customer…</option>
+              <option value="">{{ t('tickets.selectCustomer') }}</option>
               <option v-for="customer in customers" :key="customer.id" :value="customer.id">
                 {{ customer.name }}
               </option>
             </select>
           </div>
           <div class="form-field">
-            <label for="new-ticket-priority">Priority</label>
+            <label for="new-ticket-priority">{{ t('tickets.fields.priority') }}</label>
             <select id="new-ticket-priority" v-model="newPriority" data-testid="new-ticket-priority-select">
-              <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">{{ value }}</option>
+              <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">{{ priorityLabel(value) }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="new-ticket-category">Category</label>
+            <label for="new-ticket-category">{{ t('tickets.fields.category') }}</label>
             <select id="new-ticket-category" v-model="newCategoryId" data-testid="new-ticket-category-select">
-              <option value="">No category</option>
+              <option value="">{{ t('tickets.noCategory') }}</option>
               <option v-for="category in store.categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
@@ -195,9 +202,11 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="form-actions">
-          <button class="btn btn-primary" type="submit" data-testid="submit-ticket-button">Create ticket</button>
+          <button class="btn btn-primary" type="submit" data-testid="submit-ticket-button">
+            {{ t('tickets.createSubmit') }}
+          </button>
           <button class="btn btn-secondary" type="button" data-testid="cancel-create-button" @click="onCancelCreate">
-            Cancel
+            {{ t('common.actions.cancel') }}
           </button>
         </div>
       </form>
@@ -217,7 +226,7 @@ onUnmounted(() => {
             :data-testid="`scope-tab-${value}`"
             @click="onSelectScope(value)"
           >
-            {{ TICKET_SCOPE_LABELS[value] }}
+            {{ scopeLabel(value) }}
             <span v-if="value === 'overdue' && store.counts.overdue > 0" class="scope-count">
               {{ store.counts.overdue }}
             </span>
@@ -231,23 +240,23 @@ onUnmounted(() => {
       <div class="card-padded">
         <div class="filter-bar">
           <div class="form-field">
-            <label for="filter-status">Status</label>
+            <label for="filter-status">{{ t('tickets.fields.status') }}</label>
             <select id="filter-status" v-model="store.statusFilter" data-testid="filter-status-select">
-              <option value="">All statuses</option>
-              <option v-for="value in TICKET_STATUSES" :key="value" :value="value">{{ value }}</option>
+              <option value="">{{ t('tickets.allStatuses') }}</option>
+              <option v-for="value in TICKET_STATUSES" :key="value" :value="value">{{ statusLabel(value) }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="filter-priority">Priority</label>
+            <label for="filter-priority">{{ t('tickets.fields.priority') }}</label>
             <select id="filter-priority" v-model="store.priorityFilter" data-testid="filter-priority-select">
-              <option value="">All priorities</option>
-              <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">{{ value }}</option>
+              <option value="">{{ t('tickets.allPriorities') }}</option>
+              <option v-for="value in TICKET_PRIORITIES" :key="value" :value="value">{{ priorityLabel(value) }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="filter-category">Category</label>
+            <label for="filter-category">{{ t('tickets.fields.category') }}</label>
             <select id="filter-category" v-model="store.categoryFilter" data-testid="filter-category-select">
-              <option value="">All categories</option>
+              <option value="">{{ t('tickets.allCategories') }}</option>
               <option v-for="category in store.categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
@@ -260,16 +269,16 @@ onUnmounted(() => {
             data-testid="clear-filters-button"
             @click="onClearFilters"
           >
-            Clear filters
+            {{ t('tickets.clearFilters') }}
           </button>
         </div>
 
-        <LoadingState v-if="store.loading" data-testid="tickets-loading">Loading tickets…</LoadingState>
+        <LoadingState v-if="store.loading" data-testid="tickets-loading">{{ t('tickets.loading') }}</LoadingState>
 
         <EmptyState
           v-else-if="!store.hasTickets"
-          title="No tickets here"
-          description="Nothing matches this queue and filter combination."
+          :title="t('tickets.emptyTitle')"
+          :description="t('tickets.emptyDescription')"
           data-testid="tickets-empty"
         />
 
@@ -278,14 +287,14 @@ onUnmounted(() => {
             <thead>
               <tr>
                 <th scope="col">#</th>
-                <th scope="col">Subject</th>
-                <th scope="col">Status</th>
-                <th scope="col">Priority</th>
-                <th scope="col">Category</th>
-                <th scope="col">Assignee</th>
-                <th scope="col">SLA</th>
-                <th scope="col">Created</th>
-                <th scope="col"><span class="sr-only">Actions</span></th>
+                <th scope="col">{{ t('tickets.fields.subject') }}</th>
+                <th scope="col">{{ t('tickets.fields.status') }}</th>
+                <th scope="col">{{ t('tickets.fields.priority') }}</th>
+                <th scope="col">{{ t('tickets.fields.category') }}</th>
+                <th scope="col">{{ t('tickets.fields.assignee') }}</th>
+                <th scope="col">{{ t('tickets.fields.sla') }}</th>
+                <th scope="col">{{ t('tickets.fields.created') }}</th>
+                <th scope="col"><span class="sr-only">{{ t('tickets.fields.actions') }}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -305,10 +314,16 @@ onUnmounted(() => {
                     {{ ticket.subject }}
                   </RouterLink>
                 </td>
-                <td><StatusBadge :variant="statusVariant(ticket.status)">{{ ticket.status }}</StatusBadge></td>
-                <td><StatusBadge :variant="priorityVariant(ticket.priority)">{{ ticket.priority }}</StatusBadge></td>
-                <td>{{ ticket.category?.name ?? '—' }}</td>
-                <td>{{ ticket.assignedTo?.name ?? 'Unassigned' }}</td>
+                <td>
+                  <StatusBadge :variant="statusVariant(ticket.status)">{{ statusLabel(ticket.status) }}</StatusBadge>
+                </td>
+                <td>
+                  <StatusBadge :variant="priorityVariant(ticket.priority)">
+                    {{ priorityLabel(ticket.priority) }}
+                  </StatusBadge>
+                </td>
+                <td>{{ ticket.category?.name ?? t('common.states.none') }}</td>
+                <td>{{ ticket.assignedTo?.name ?? t('tickets.unassigned') }}</td>
                 <td><SlaIndicator :ticket="ticket" compact /></td>
                 <td>{{ formatDate(ticket.createdAt) }}</td>
                 <td>
@@ -319,7 +334,7 @@ onUnmounted(() => {
                     data-testid="claim-ticket-button"
                     @click="onClaim(ticket.id)"
                   >
-                    Claim
+                    {{ t('tickets.claim') }}
                   </button>
                 </td>
               </tr>

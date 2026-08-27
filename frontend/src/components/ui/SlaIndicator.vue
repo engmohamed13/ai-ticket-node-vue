@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { formatMinutes, minutesSinceCreated, resolutionSlaState, responseSlaState } from '../../services/ticketSla';
 import type { SlaState } from '../../services/ticketSla';
 import type { Ticket } from '../../types';
 import StatusBadge from './StatusBadge.vue';
 
 const props = withDefaults(defineProps<{ ticket: Ticket; compact?: boolean }>(), { compact: false });
+
+const { t } = useI18n();
 
 type Variant = 'success' | 'danger' | 'warning' | 'neutral';
 
@@ -27,40 +30,43 @@ const overall = computed<SlaState>(() => {
   return 'none';
 });
 
-const OVERALL_LABELS: Record<SlaState, string> = {
-  met: 'On time',
-  overdue: 'Overdue',
-  due: 'Within SLA',
-  none: 'No SLA'
-};
+/** SLA state → translated label. The state itself stays the raw wire value. */
+const overallLabel = (state: SlaState): string => t(`notifications.sla.overall.${state}`);
+
+/** The per-clock badge label; "none" falls back to the shared em-dash placeholder. */
+const stateLabel = (state: SlaState): string =>
+  state === 'none' ? t('common.states.none') : t(`notifications.sla.state.${state}`);
 
 const label = (stampedAt: string | null, target: number | null): string => {
-  if (target === null) return 'No target';
+  if (target === null) return t('notifications.sla.noTarget');
   if (stampedAt !== null) {
-    return `${formatMinutes(minutesSinceCreated(props.ticket, stampedAt))} of ${formatMinutes(target)}`;
+    return t('notifications.sla.elapsedOfTarget', {
+      elapsed: formatMinutes(minutesSinceCreated(props.ticket, stampedAt)),
+      target: formatMinutes(target)
+    });
   }
-  return `Target ${formatMinutes(target)}`;
+  return t('notifications.sla.target', { target: formatMinutes(target) });
 };
 </script>
 
 <template>
   <StatusBadge v-if="compact" :variant="VARIANTS[overall]" data-testid="sla-overall-badge">
-    {{ OVERALL_LABELS[overall] }}
+    {{ overallLabel(overall) }}
   </StatusBadge>
 
   <div v-else class="sla-grid" data-testid="sla-indicator">
     <div class="sla-item">
-      <span class="sla-label">First response</span>
+      <span class="sla-label">{{ t('notifications.sla.firstResponse') }}</span>
       <StatusBadge :variant="VARIANTS[response]" data-testid="sla-response-badge">
-        {{ response === 'overdue' ? 'Overdue' : response === 'met' ? 'Met' : response === 'due' ? 'Pending' : '—' }}
+        {{ stateLabel(response) }}
       </StatusBadge>
       <span class="sla-detail">{{ label(ticket.respondedAt, ticket.responseTimeMinutes) }}</span>
     </div>
 
     <div class="sla-item">
-      <span class="sla-label">Resolution</span>
+      <span class="sla-label">{{ t('notifications.sla.resolution') }}</span>
       <StatusBadge :variant="VARIANTS[resolution]" data-testid="sla-resolution-badge">
-        {{ resolution === 'overdue' ? 'Overdue' : resolution === 'met' ? 'Met' : resolution === 'due' ? 'Pending' : '—' }}
+        {{ stateLabel(resolution) }}
       </StatusBadge>
       <span class="sla-detail">{{ label(ticket.resolvedAt, ticket.resolutionTimeMinutes) }}</span>
     </div>

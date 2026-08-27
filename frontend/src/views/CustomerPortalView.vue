@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { usePortalStore } from '../stores/portal';
 import type { Ticket, TicketPriority } from '../types';
 import PageHeader from '../components/ui/PageHeader.vue';
@@ -9,6 +10,7 @@ import EmptyState from '../components/ui/EmptyState.vue';
 import StatusBadge from '../components/ui/StatusBadge.vue';
 
 const store = usePortalStore();
+const { t, locale } = useI18n();
 
 // Same status/priority colour mapping the agent queue uses, so a ticket reads the same way
 // on both sides of the product.
@@ -41,7 +43,7 @@ const priorityVariant = (priority: TicketPriority): 'neutral' | 'primary' | 'war
   }
 };
 
-const formatDate = (value: string): string => new Date(value).toLocaleDateString();
+const formatDate = (value: string): string => new Date(value).toLocaleDateString(locale.value);
 
 onMounted(() => {
   void store.loadDashboard();
@@ -50,32 +52,32 @@ onMounted(() => {
 
 <template>
   <section class="view">
-    <PageHeader title="My Tickets" subtitle="Track your support requests and rate the ones we have closed." />
+    <PageHeader :title="t('portal.title')" :subtitle="t('portal.subtitle')" />
 
     <AlertBanner v-if="store.error" variant="error" data-testid="portal-error">{{ store.error }}</AlertBanner>
 
-    <LoadingState v-if="store.loading" data-testid="portal-loading">Loading your tickets…</LoadingState>
+    <LoadingState v-if="store.loading" data-testid="portal-loading">{{ t('portal.loading') }}</LoadingState>
 
     <template v-else>
       <div v-if="store.summary" class="summary-grid" data-testid="portal-summary">
         <div class="summary-card">
-          <p class="summary-label">Total</p>
+          <p class="summary-label">{{ t('portal.summary.total') }}</p>
           <p class="summary-value" data-testid="summary-total">{{ store.summary.totalTickets }}</p>
         </div>
         <div class="summary-card">
-          <p class="summary-label">Open</p>
+          <p class="summary-label">{{ t('portal.summary.open') }}</p>
           <p class="summary-value" data-testid="summary-open">{{ store.summary.openTickets }}</p>
         </div>
         <div class="summary-card">
-          <p class="summary-label">Awaiting your reply</p>
+          <p class="summary-label">{{ t('portal.summary.awaitingReply') }}</p>
           <p class="summary-value" data-testid="summary-pending">{{ store.summary.pendingTickets }}</p>
         </div>
         <div class="summary-card">
-          <p class="summary-label">Resolved</p>
+          <p class="summary-label">{{ t('portal.summary.resolved') }}</p>
           <p class="summary-value" data-testid="summary-resolved">{{ store.summary.resolvedTickets }}</p>
         </div>
         <div class="summary-card">
-          <p class="summary-label">Awaiting feedback</p>
+          <p class="summary-label">{{ t('portal.summary.awaitingFeedback') }}</p>
           <p class="summary-value" data-testid="summary-awaiting-feedback">
             {{ store.summary.awaitingFeedback }}
           </p>
@@ -86,8 +88,8 @@ onMounted(() => {
         <div class="card-padded">
           <EmptyState
             v-if="!store.hasTickets"
-            title="No tickets yet"
-            description="When you contact our support team, your requests will appear here."
+            :title="t('portal.emptyTitle')"
+            :description="t('portal.emptyDescription')"
             data-testid="portal-empty"
           />
 
@@ -96,12 +98,12 @@ onMounted(() => {
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Subject</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Priority</th>
-                  <th scope="col">Category</th>
-                  <th scope="col">Opened</th>
-                  <th scope="col">Feedback</th>
+                  <th scope="col">{{ t('portal.columns.subject') }}</th>
+                  <th scope="col">{{ t('portal.columns.status') }}</th>
+                  <th scope="col">{{ t('portal.columns.priority') }}</th>
+                  <th scope="col">{{ t('portal.columns.category') }}</th>
+                  <th scope="col">{{ t('portal.columns.opened') }}</th>
+                  <th scope="col">{{ t('portal.columns.feedback') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,7 +124,7 @@ onMounted(() => {
                   <td>
                     <StatusBadge :variant="priorityVariant(ticket.priority)">{{ ticket.priority }}</StatusBadge>
                   </td>
-                  <td>{{ ticket.category?.name ?? '—' }}</td>
+                  <td>{{ ticket.category?.name ?? t('common.states.none') }}</td>
                   <td>{{ formatDate(ticket.createdAt) }}</td>
                   <td>
                     <span v-if="ticket.feedback" class="rating" data-testid="portal-ticket-rating">
@@ -134,9 +136,9 @@ onMounted(() => {
                       :to="{ name: 'portal-ticket-detail', params: { id: ticket.id } }"
                       data-testid="portal-leave-feedback-link"
                     >
-                      Leave feedback
+                      {{ t('portal.leaveFeedback') }}
                     </RouterLink>
-                    <span v-else class="muted">—</span>
+                    <span v-else class="muted">{{ t('common.states.none') }}</span>
                   </td>
                 </tr>
               </tbody>

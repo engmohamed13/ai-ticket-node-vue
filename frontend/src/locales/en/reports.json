@@ -1,0 +1,70 @@
+{
+  "title": "Management Dashboard",
+  "subtitle": "Volume, SLA health, agent load, and what customers think.",
+  "loading": "Loading the dashboard…",
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "status": "Status",
+    "priority": "Priority",
+    "agent": "Agent",
+    "allStatuses": "All statuses",
+    "allPriorities": "All priorities",
+    "allAgents": "All agents",
+    "apply": "Apply"
+  },
+  "kpis": {
+    "total": "Total tickets",
+    "open": "Open",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "overdue": "Overdue",
+    "satisfaction": "Satisfaction",
+    "satisfactionValue": "{rating}/{scale}",
+    "ratings": "{count} ratings"
+  },
+  "status": {
+    "New": "New",
+    "Open": "Open",
+    "In Progress": "In Progress",
+    "Pending": "Pending",
+    "Resolved": "Resolved",
+    "Closed": "Closed"
+  },
+  "priority": {
+    "Low": "Low",
+    "Medium": "Medium",
+    "High": "High",
+    "Urgent": "Urgent"
+  },
+  "panels": {
+    "byStatus": "Tickets by status",
+    "byPriority": "Tickets by priority",
+    "trends": "Created vs resolved, by week",
+    "workload": "Agent workload",
+    "topArticles": "Most-read knowledge base articles"
+  },
+  "trends": {
+    "emptyTitle": "No trend data",
+    "emptyDescription": "Nothing was opened or closed in this window.",
+    "createdTooltip": "{count} created",
+    "resolvedTooltip": "{count} resolved",
+    "legendCreated": "Created",
+    "legendResolved": "Resolved"
+  },
+  "workload": {
+    "emptyTitle": "No assigned tickets",
+    "emptyDescription": "Nothing matches these filters, so no agent has anything queued.",
+    "agent": "Agent",
+    "assigned": "Assigned",
+    "open": "Open",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "overdue": "Overdue"
+  },
+  "articles": {
+    "emptyTitle": "No published articles",
+    "emptyDescription": "Publish a knowledge base article and its readership will show up here.",
+    "views": "{count} views"
+  }
+}

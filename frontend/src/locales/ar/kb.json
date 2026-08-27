@@ -1,0 +1,55 @@
+{
+  "title": "قاعدة المعرفة",
+  "subtitle": "إرشادات وإجابات عن الأسئلة الأكثر تكرارًا التي تُطرح علينا.",
+  "searchLabel": "البحث في المقالات",
+  "searchPlaceholder": "جرّب «تسجيل الدخول» أو «الأولوية»",
+  "categoryLabel": "التصنيف",
+  "allCategories": "جميع التصنيفات",
+  "categoriesTitle": "التصنيفات",
+  "loadingArticles": "جارٍ تحميل المقالات…",
+  "emptyTitle": "لم يتم العثور على مقالات",
+  "emptyDescription": "جرّب مصطلح بحث آخر، أو أزل تصفية التصنيف.",
+  "views": "{count} مشاهدة",
+  "state": {
+    "published": "منشور",
+    "draft": "مسودة"
+  },
+  "actions": {
+    "publish": "نشر",
+    "unpublish": "إلغاء النشر"
+  },
+  "manage": {
+    "title": "إدارة المقالات",
+    "subtitle": "اكتب مقالات قاعدة المعرفة وحرّرها وانشرها وألغِ نشرها.",
+    "backLink": "عرض قاعدة المعرفة",
+    "newArticle": "مقال جديد",
+    "editArticle": "تعديل المقال",
+    "createSubmit": "إنشاء مقال",
+    "saveSubmit": "حفظ التغييرات",
+    "publishedHint": "منشور — مرئي للعملاء وموظفي الدعم",
+    "emptyTitle": "لا توجد مقالات بعد",
+    "emptyDescription": "أنشئ أول مقال في قاعدة المعرفة للبدء.",
+    "fields": {
+      "title": "العنوان",
+      "category": "التصنيف",
+      "categoryPlaceholder": "اختر تصنيفًا…",
+      "summary": "الملخص (اختياري)",
+      "body": "المحتوى (Markdown)"
+    },
+    "columns": {
+      "title": "العنوان",
+      "category": "التصنيف",
+      "state": "الحالة",
+      "views": "المشاهدات",
+      "actions": "الإجراءات"
+    }
+  },
+  "article": {
+    "fallbackTitle": "مقال",
+    "backLink": "الرجوع إلى قاعدة المعرفة",
+    "loading": "جارٍ تحميل هذا المقال…",
+    "missingTitle": "لم يتم العثور على المقال",
+    "missingDescription": "قد يكون قد أُلغي نشره، أو أن الرابط غير صحيح.",
+    "updated": "آخر تحديث {date}"
+  }
+}

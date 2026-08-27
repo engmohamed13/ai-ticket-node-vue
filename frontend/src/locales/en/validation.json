@@ -1,0 +1,10 @@
+{
+  "required": "This field is required",
+  "requiredField": "{field} is required",
+  "emailInvalid": "Enter a valid email address",
+  "passwordTooShort": "Password must be at least {min} characters",
+  "tooShort": "Must be at least {min} characters",
+  "tooLong": "Must be {max} characters or fewer",
+  "numberInvalid": "Enter a valid number",
+  "selectOption": "Select an option"
+}

@@ -1,0 +1,83 @@
+{
+  "title": "التذاكر",
+  "subtitle": "قائمة تذاكرك، والتذاكر المفتوحة، وكل ما تجاوز اتفاقية مستوى الخدمة.",
+  "newTicket": "تذكرة جديدة",
+  "createSubmit": "إنشاء التذكرة",
+  "selectCustomer": "اختر عميلاً…",
+  "noCategory": "بدون تصنيف",
+  "allStatuses": "جميع الحالات",
+  "allPriorities": "جميع الأولويات",
+  "allCategories": "جميع التصنيفات",
+  "clearFilters": "مسح عوامل التصفية",
+  "loading": "جارٍ تحميل التذاكر…",
+  "emptyTitle": "لا توجد تذاكر هنا",
+  "emptyDescription": "لا يوجد ما يطابق هذه القائمة وعوامل التصفية المحددة.",
+  "unassigned": "غير مُعيَّنة",
+  "claim": "استلام",
+  "fields": {
+    "subject": "الموضوع",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "category": "التصنيف",
+    "assignee": "المسؤول",
+    "sla": "اتفاقية مستوى الخدمة",
+    "created": "تاريخ الإنشاء",
+    "customer": "العميل",
+    "lastUpdated": "آخر تحديث",
+    "actions": "الإجراءات"
+  },
+  "scopes": {
+    "mine": "تذاكري",
+    "open": "التذاكر المفتوحة",
+    "pending": "التذاكر المعلّقة",
+    "overdue": "التذاكر المتأخرة",
+    "unassigned": "غير المُعيَّنة",
+    "all": "جميع التذاكر"
+  },
+  "status": {
+    "New": "جديدة",
+    "Open": "مفتوحة",
+    "In Progress": "قيد المعالجة",
+    "Pending": "معلّقة",
+    "Resolved": "تم حلها",
+    "Closed": "مغلقة"
+  },
+  "priority": {
+    "Low": "منخفضة",
+    "Medium": "متوسطة",
+    "High": "عالية",
+    "Urgent": "عاجلة"
+  },
+  "channels": {
+    "EMAIL": "البريد الإلكتروني",
+    "WHATSAPP": "واتساب",
+    "LIVE_CHAT": "الدردشة المباشرة",
+    "SMS": "الرسائل النصية",
+    "WEB_FORM": "نموذج الويب"
+  },
+  "directions": {
+    "INBOUND": "وارد",
+    "OUTBOUND": "صادر"
+  },
+  "detail": {
+    "titleFallback": "تذكرة",
+    "subtitle": "سير العمل واتفاقية مستوى الخدمة والتعليقات الداخلية والمرفقات وسجل التواصل الكامل.",
+    "backToTickets": "العودة إلى التذاكر",
+    "loading": "جارٍ تحميل التذكرة…",
+    "notFoundTitle": "لم يتم العثور على التذكرة",
+    "notFoundDescription": "ربما تم حذفها، أو أن الرابط غير صحيح.",
+    "workflow": "سير العمل",
+    "assignToMe": "تعيينها لي",
+    "attachments": "المرفقات",
+    "upload": "رفع",
+    "noAttachments": "لا توجد مرفقات بعد",
+    "download": "تنزيل",
+    "fileSize": "{size} كيلوبايت",
+    "timelineTitle": "سجل التواصل",
+    "commentPlaceholder": "أضف تعليقًا داخليًا…",
+    "addComment": "إضافة تعليق",
+    "timelineEmptyTitle": "لا يوجد شيء هنا بعد",
+    "timelineEmptyDescription": "ستظهر تفاعلات العميل والتعليقات الداخلية معًا في هذا السجل.",
+    "internalNote": "ملاحظة داخلية"
+  }
+}

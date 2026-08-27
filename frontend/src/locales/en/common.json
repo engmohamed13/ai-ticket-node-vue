@@ -1,0 +1,55 @@
+{
+  "appName": "CustomerSupportCRM",
+  "brandMark": "CS",
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "update": "Update",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "submit": "Submit",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "back": "Back",
+    "dismiss": "Dismiss",
+    "viewAll": "View all",
+    "saving": "Saving…",
+    "loading": "Loading…"
+  },
+  "states": {
+    "loading": "Loading…",
+    "empty": "No records found",
+    "error": "Something went wrong",
+    "noData": "No data available",
+    "none": "—"
+  },
+  "pagination": {
+    "summary": "Showing {from}–{to} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {pages}",
+    "perPage": "Per page"
+  },
+  "table": {
+    "sortAscending": "Sorted ascending",
+    "sortDescending": "Sorted descending",
+    "sortBy": "Sort by {column}"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch to {language}",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "toggleNav": "Toggle navigation menu",
+    "primaryNav": "Primary",
+    "breadcrumb": "Breadcrumb"
+  }
+}

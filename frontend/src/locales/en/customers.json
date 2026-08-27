@@ -1,0 +1,67 @@
+{
+  "title": "Customers",
+  "subtitle": "The customer directory, contact details, and status.",
+  "searchLabel": "Search",
+  "searchPlaceholder": "Name, email, phone, or company",
+  "statusLabel": "Status",
+  "allStatuses": "All statuses",
+  "createTitle": "Create customer",
+  "createSubmit": "Create customer",
+  "readOnlyHint": "You have read-only access to the customer directory.",
+  "loading": "Loading customers…",
+  "emptyTitle": "No customers yet",
+  "emptyDescription": "Customers created here will show up in this list.",
+  "fields": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company",
+    "address": "Address",
+    "city": "City",
+    "country": "Country",
+    "status": "Status",
+    "created": "Created",
+    "subject": "Subject"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "PROSPECT": "Prospect",
+    "INACTIVE": "Inactive",
+    "ARCHIVED": "Archived"
+  },
+  "channels": {
+    "EMAIL": "EMAIL",
+    "WHATSAPP": "WHATSAPP",
+    "LIVE_CHAT": "LIVE_CHAT",
+    "SMS": "SMS",
+    "WEB_FORM": "WEB_FORM"
+  },
+  "directions": {
+    "INBOUND": "INBOUND",
+    "OUTBOUND": "OUTBOUND"
+  },
+  "detail": {
+    "titleFallback": "Customer",
+    "subtitle": "Profile, notes, attachments, and history.",
+    "loading": "Loading customer…",
+    "notFoundTitle": "Customer not found",
+    "notFoundDescription": "It may have been removed, or the link is incorrect.",
+    "backToCustomers": "Back to customers",
+    "profile": "Profile",
+    "notes": "Notes",
+    "notePlaceholder": "Add a note…",
+    "addNote": "Add note",
+    "noNotes": "No notes yet",
+    "attachments": "Attachments",
+    "upload": "Upload",
+    "download": "Download",
+    "noAttachments": "No attachments yet",
+    "fileSize": "{size} KB",
+    "tickets": "Tickets",
+    "noTickets": "No tickets yet",
+    "timelineTitle": "Interaction history",
+    "timelineEmptyTitle": "No interactions yet",
+    "timelineEmptyDescription": "Interactions with this customer will appear here as they come in.",
+    "ticketRef": "Ticket #{id}"
+  }
+}

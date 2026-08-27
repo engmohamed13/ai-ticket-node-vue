@@ -8,9 +8,16 @@
 withDefaults(
   defineProps<{
     variant?: 'error' | 'success' | 'warning' | 'info';
+    /** Renders a close button that emits `dismiss`. Off by default so existing
+     *  call sites — which own the banner's visibility through `v-if` — are unchanged. */
+    dismissible?: boolean;
+    /** Accessible label for the close button; pass a translated string. */
+    dismissLabel?: string;
   }>(),
-  { variant: 'info' }
+  { variant: 'info', dismissible: false, dismissLabel: 'Dismiss' }
 );
+
+defineEmits<{ dismiss: [] }>();
 </script>
 
 <template>
@@ -59,5 +66,16 @@ withDefaults(
       <circle cx="12" cy="8" r="1" fill="currentColor" />
     </svg>
     <div class="alert-body"><slot /></div>
+    <button
+      v-if="dismissible"
+      type="button"
+      class="alert-close"
+      :aria-label="dismissLabel"
+      @click="$emit('dismiss')"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
   </div>
 </template>

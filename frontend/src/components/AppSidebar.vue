@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 withDefaults(defineProps<{ open?: boolean }>(), { open: false });
 
 const auth = useAuthStore();
 const router = useRouter();
+const { t, te } = useI18n();
 
 /** Every route that declares a `navLabel`, minus the ones this user cannot enter. */
 const navItems = computed(() =>
@@ -18,6 +21,14 @@ const navItems = computed(() =>
     return !route.meta.permission || auth.can(route.meta.permission);
   })
 );
+
+/**
+ * Nav labels are keyed by route name under `nav.*`. The route's own `meta.navLabel`
+ * stays the fallback, so adding a route without a translation shows English rather
+ * than a raw key — and `src/tests/i18n.spec.ts` catches the missing key.
+ */
+const navLabel = (name: string, fallback: string): string =>
+  te(`nav.${name}`) ? t(`nav.${name}`) : fallback;
 
 /** Small set of route-name → icon paths, purely decorative (aria-hidden). */
 const ICONS: Record<string, string> = {
@@ -35,7 +46,7 @@ const ICONS: Record<string, string> = {
 
 <template>
   <aside class="app-sidebar" :class="{ 'is-open': open }">
-    <nav data-testid="sidebar-nav" aria-label="Primary">
+    <nav data-testid="sidebar-nav" :aria-label="t('common.a11y.primaryNav')">
       <RouterLink
         v-for="item in navItems"
         :key="item.name as string"
@@ -54,9 +65,13 @@ const ICONS: Record<string, string> = {
         >
           <path :d="ICONS[item.name as string]" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        <span>{{ item.meta.navLabel }}</span>
+        <span>{{ navLabel(item.name as string, item.meta.navLabel as string) }}</span>
       </RouterLink>
     </nav>
+    <!-- On narrow screens the header hides its language toggle, so the drawer carries one. -->
+    <div class="sidebar-footer">
+      <LanguageSwitcher />
+    </div>
   </aside>
 </template>
 
@@ -65,8 +80,11 @@ const ICONS: Record<string, string> = {
   width: var(--sidebar-width);
   flex-shrink: 0;
   background-color: var(--surface-color);
-  border-right: 1px solid var(--border-color);
+  /* Logical property: becomes the left edge in RTL without a second rule. */
+  border-inline-end: 1px solid var(--border-color);
   padding: var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
 }
 
 nav {
@@ -75,17 +93,24 @@ nav {
   gap: 0.15rem;
 }
 
+.sidebar-footer {
+  display: none;
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+}
+
 .nav-link {
   display: flex;
   align-items: center;
   gap: 0.65rem;
   padding: 0.55rem 0.75rem;
   border-radius: var(--radius-sm);
-  color: var(--slate-600);
+  color: var(--text-muted);
   text-decoration: none;
   font-size: var(--font-sm);
   font-weight: 500;
-  border-right: 3px solid transparent;
+  border-inline-end: 3px solid transparent;
   transition:
     background-color var(--transition-fast),
     color var(--transition-fast);
@@ -98,7 +123,7 @@ nav {
 }
 
 .nav-link:hover {
-  background-color: var(--slate-100);
+  background-color: var(--surface-sunken);
   color: var(--text-main);
 }
 
@@ -106,7 +131,7 @@ nav {
   background-color: var(--color-primary-bg);
   color: var(--color-primary);
   font-weight: 600;
-  border-right-color: var(--color-primary);
+  border-inline-end-color: var(--color-primary);
 }
 
 .nav-link.router-link-active .nav-icon {
@@ -118,17 +143,29 @@ nav {
     position: fixed;
     top: var(--header-height);
     bottom: 0;
-    left: 0;
+    /* Anchored to the inline start edge: left in LTR, right in RTL. */
+    inset-inline-start: 0;
     z-index: 35;
     width: 260px;
     box-shadow: var(--shadow-lg);
-    transform: translateX(-100%);
+    /* Slides out towards the start edge; the sign flips with the writing mode so the
+       drawer leaves the screen in the correct direction under RTL too. */
+    transform: translateX(calc(-100% * var(--dir, 1)));
     transition: transform var(--transition);
     overflow-y: auto;
   }
 
   .app-sidebar.is-open {
     transform: translateX(0);
+  }
+}
+
+/* The header hides its own language toggle at this width, so the drawer carries one.
+   Kept in step with the `.header-language` breakpoint in AppHeader.vue — widening one
+   without the other puts two switchers on screen at once. */
+@media (max-width: 560px) {
+  .sidebar-footer {
+    display: block;
   }
 }
 </style>

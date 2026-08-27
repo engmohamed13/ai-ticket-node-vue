@@ -1,0 +1,53 @@
+{
+  "title": "My Tickets",
+  "subtitle": "Track your support requests and rate the ones we have closed.",
+  "loading": "Loading your tickets…",
+  "emptyTitle": "No tickets yet",
+  "emptyDescription": "When you contact our support team, your requests will appear here.",
+  "leaveFeedback": "Leave feedback",
+  "summary": {
+    "total": "Total",
+    "open": "Open",
+    "awaitingReply": "Awaiting your reply",
+    "resolved": "Resolved",
+    "awaitingFeedback": "Awaiting feedback"
+  },
+  "columns": {
+    "subject": "Subject",
+    "status": "Status",
+    "priority": "Priority",
+    "category": "Category",
+    "opened": "Opened",
+    "feedback": "Feedback"
+  },
+  "detail": {
+    "fallbackTitle": "Ticket",
+    "subtitle": "The current status of your request, and your feedback once it is closed.",
+    "backToList": "Back to my tickets",
+    "loading": "Loading this ticket…",
+    "missingTitle": "Ticket not found",
+    "missingDescription": "It may have been removed, or the link is incorrect.",
+    "requestDetails": "Request details",
+    "fields": {
+      "reference": "Reference",
+      "status": "Status",
+      "priority": "Priority",
+      "category": "Category",
+      "opened": "Opened",
+      "lastUpdated": "Last updated",
+      "resolved": "Resolved"
+    }
+  },
+  "feedback": {
+    "title": "Your feedback",
+    "noComment": "No additional comment.",
+    "submittedAt": "Submitted {date}",
+    "prompt": "How did we do?",
+    "starAriaLabel": "{value} out of {max}",
+    "pickRating": "Pick a rating",
+    "commentLabel": "Anything you would like to add? (optional)",
+    "submit": "Submit feedback",
+    "submitting": "Submitting…",
+    "locked": "You will be able to rate this request once it has been resolved."
+  }
+}

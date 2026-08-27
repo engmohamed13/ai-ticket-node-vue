@@ -1,0 +1,22 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome back, {name}.",
+  "welcomeFallbackName": "there",
+  "systemStatus": "System status",
+  "unknownStatus": "unknown",
+  "signedInAs": "Signed in as",
+  "role": "Role",
+  "permissionsGranted": "Permissions granted",
+  "quickAccess": "Quick access",
+  "modules": {
+    "system-health": "API and database status at a glance.",
+    "communications": "Unified customer interaction timeline.",
+    "customers": "Browse and manage the customer directory.",
+    "tickets": "Track and resolve support tickets.",
+    "management-dashboard": "Operational metrics and reporting.",
+    "kb": "Search help articles and guides.",
+    "portal": "Review the tickets you have raised.",
+    "users": "Manage the user directory and access.",
+    "roles": "Review and edit role permissions."
+  }
+}

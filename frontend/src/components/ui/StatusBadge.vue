@@ -7,11 +7,12 @@
 withDefaults(
   defineProps<{
     variant?: 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
+    size?: 'sm' | 'md';
   }>(),
-  { variant: 'neutral' }
+  { variant: 'neutral', size: 'md' }
 );
 </script>
 
 <template>
-  <span class="badge" :class="`badge-${variant}`"><slot /></span>
+  <span class="badge" :class="[`badge-${variant}`, { 'badge-sm': size === 'sm' }]"><slot /></span>
 </template>

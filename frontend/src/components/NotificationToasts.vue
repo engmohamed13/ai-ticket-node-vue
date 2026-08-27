@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useNotificationsStore } from '../stores/notifications';
 import { NOTIFICATION_ICONS } from './notificationIcons';
@@ -11,6 +12,7 @@ import { NOTIFICATION_ICONS } from './notificationIcons';
  */
 const notifications = useNotificationsStore();
 const router = useRouter();
+const { t } = useI18n();
 
 const onOpen = async (id: number, ticketId: number | null): Promise<void> => {
   notifications.dismissToast(id);
@@ -47,13 +49,13 @@ const onOpen = async (id: number, ticketId: number | null): Promise<void> => {
           data-testid="open-notification-button"
           @click="onOpen(entry.id, entry.relatedTicketId)"
         >
-          Open ticket #{{ entry.relatedTicketId }}
+          {{ t('notifications.openTicket', { id: entry.relatedTicketId }) }}
         </button>
       </div>
       <button
         class="toast-dismiss"
         type="button"
-        aria-label="Dismiss notification"
+        :aria-label="t('notifications.dismissToast')"
         data-testid="dismiss-notification-button"
         @click="notifications.dismissToast(entry.id)"
       >
@@ -66,7 +68,7 @@ const onOpen = async (id: number, ticketId: number | null): Promise<void> => {
 <style scoped>
 .toast-stack {
   position: fixed;
-  right: var(--space-4);
+  inset-inline-end: var(--space-4);
   bottom: var(--space-4);
   z-index: 60;
   display: flex;
@@ -82,7 +84,7 @@ const onOpen = async (id: number, ticketId: number | null): Promise<void> => {
   padding: 0.75rem 0.9rem;
   background-color: var(--surface-color);
   border: 1px solid var(--border-color);
-  border-left: 3px solid var(--color-primary);
+  border-inline-start: 3px solid var(--color-primary);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
 }

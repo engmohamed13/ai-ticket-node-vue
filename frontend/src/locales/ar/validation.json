@@ -1,0 +1,10 @@
+{
+  "required": "هذا الحقل مطلوب",
+  "requiredField": "{field} مطلوب",
+  "emailInvalid": "أدخل بريدًا إلكترونيًا صحيحًا",
+  "passwordTooShort": "يجب أن تتكون كلمة المرور من {min} أحرف على الأقل",
+  "tooShort": "يجب أن يتكون من {min} أحرف على الأقل",
+  "tooLong": "يجب ألا يتجاوز {max} حرفًا",
+  "numberInvalid": "أدخل رقمًا صحيحًا",
+  "selectOption": "اختر أحد الخيارات"
+}

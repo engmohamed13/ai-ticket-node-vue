@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useCommunicationsStore } from '../stores/communications';
 import { CHANNELS, INTERACTION_DIRECTIONS } from '../types';
 import type { Channel, InteractionDirection } from '../types';
@@ -10,6 +11,11 @@ import LoadingState from '../components/ui/LoadingState.vue';
 import EmptyState from '../components/ui/EmptyState.vue';
 
 const store = useCommunicationsStore();
+const { t, locale } = useI18n();
+
+/** Enum value → translated label. The value stays the wire format; only the label changes. */
+const channelLabel = (value: Channel | string): string => t(`communications.channels.${value}`);
+const directionLabel = (value: InteractionDirection | string): string => t(`communications.directions.${value}`);
 
 const channel = ref<Channel>('EMAIL');
 const direction = ref<InteractionDirection>('INBOUND');
@@ -51,7 +57,7 @@ const onAssociate = async (interactionId: number): Promise<void> => {
   await store.associate(interactionId, Number(target));
 };
 
-const formatOccurredAt = (occurredAt: string): string => new Date(occurredAt).toLocaleString();
+const formatOccurredAt = (occurredAt: string): string => new Date(occurredAt).toLocaleString(locale.value);
 const ticketLabel = (ticket: { id: number; subject: string }) => `#${ticket.id} — ${ticket.subject}`;
 const hasTickets = computed(() => store.ticketsForSelectedCustomer.length > 0);
 const isTimelineEmpty = computed(() => !store.loading && store.timeline.length === 0);
@@ -61,11 +67,11 @@ const directionVariant = (value: string) => (value === 'INBOUND' ? 'info' : 'pri
 
 <template>
   <section class="view">
-    <PageHeader title="Communications" subtitle="A unified inbox across every channel, per customer." />
+    <PageHeader :title="t('communications.title')" :subtitle="t('communications.subtitle')" />
 
     <div class="card card-padded customer-picker">
       <div class="form-field">
-        <label for="customer-select">Customer</label>
+        <label for="customer-select">{{ t('communications.customerLabel') }}</label>
         <select id="customer-select" data-testid="customer-select" @change="onSelectCustomer">
           <option v-for="customer in store.customers" :key="customer.id" :value="customer.id">
             {{ customer.name }}
@@ -80,78 +86,86 @@ const directionVariant = (value: string) => (value === 'INBOUND' ? 'info' : 'pri
 
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">Create or receive an interaction</h3>
+        <h3 class="card-title">{{ t('communications.createTitle') }}</h3>
       </div>
       <form class="card-padded" data-testid="interaction-form" @submit.prevent="onSubmit">
         <div class="form-grid">
           <div class="form-field">
-            <label for="channel-select">Channel</label>
+            <label for="channel-select">{{ t('communications.fields.channel') }}</label>
             <select id="channel-select" v-model="channel" data-testid="channel-select">
-              <option v-for="value in CHANNELS" :key="value" :value="value">{{ value }}</option>
+              <option v-for="value in CHANNELS" :key="value" :value="value">{{ channelLabel(value) }}</option>
             </select>
           </div>
           <div class="form-field">
-            <label for="direction-select">Direction</label>
+            <label for="direction-select">{{ t('communications.fields.direction') }}</label>
             <select id="direction-select" v-model="direction" data-testid="direction-select">
-              <option v-for="value in INTERACTION_DIRECTIONS" :key="value" :value="value">{{ value }}</option>
+              <option v-for="value in INTERACTION_DIRECTIONS" :key="value" :value="value">{{ directionLabel(value) }}</option>
             </select>
           </div>
           <div class="form-field field-span-2">
-            <label for="ticket-select">Ticket (optional)</label>
+            <label for="ticket-select">{{ t('communications.fields.ticket') }}</label>
             <select id="ticket-select" v-model="ticketId" data-testid="ticket-select">
-              <option value="">Not associated yet</option>
+              <option value="">{{ t('communications.ticketPlaceholder') }}</option>
               <option v-for="ticket in store.ticketsForSelectedCustomer" :key="ticket.id" :value="ticket.id">
                 {{ ticketLabel(ticket) }}
               </option>
             </select>
-            <span v-if="!hasTickets" class="field-hint">This customer has no tickets yet — new interactions start unassociated.</span>
+            <span v-if="!hasTickets" class="field-hint">{{ t('communications.noTicketsHint') }}</span>
           </div>
           <div class="form-field field-span-2">
-            <label for="subject-input">Subject</label>
-            <input id="subject-input" v-model="subject" data-testid="subject-input" type="text" placeholder="Optional subject line" />
+            <label for="subject-input">{{ t('communications.fields.subject') }}</label>
+            <input
+              id="subject-input"
+              v-model="subject"
+              data-testid="subject-input"
+              type="text"
+              :placeholder="t('communications.subjectPlaceholder')"
+            />
           </div>
           <div class="form-field field-span-2">
-            <label for="body-input">Message</label>
+            <label for="body-input">{{ t('communications.fields.message') }}</label>
             <textarea id="body-input" v-model="body" data-testid="body-input" rows="4" required></textarea>
           </div>
         </div>
         <div class="form-actions">
-          <button class="btn btn-primary" type="submit" data-testid="submit-interaction">Save interaction</button>
+          <button class="btn btn-primary" type="submit" data-testid="submit-interaction">{{ t('communications.submit') }}</button>
         </div>
       </form>
     </div>
 
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">Unified timeline</h3>
+        <h3 class="card-title">{{ t('communications.timeline.title') }}</h3>
       </div>
       <div class="card-padded timeline-body">
-        <LoadingState v-if="store.loading" data-testid="timeline-loading">Loading timeline…</LoadingState>
+        <LoadingState v-if="store.loading" data-testid="timeline-loading">{{ t('communications.timeline.loading') }}</LoadingState>
         <EmptyState
           v-else-if="isTimelineEmpty"
-          title="No interactions yet"
-          description="Interactions with this customer will appear here as they come in."
+          :title="t('communications.timeline.emptyTitle')"
+          :description="t('communications.timeline.emptyDescription')"
         />
         <ul v-else class="timeline" data-testid="timeline-list">
           <li v-for="interaction in store.timeline" :key="interaction.id" class="timeline-item" data-testid="timeline-item">
             <div class="timeline-meta">
-              <StatusBadge variant="primary" class="channel-badge">{{ interaction.channel }}</StatusBadge>
-              <StatusBadge :variant="directionVariant(interaction.direction)" class="direction">{{ interaction.direction }}</StatusBadge>
+              <StatusBadge variant="primary" class="channel-badge">{{ channelLabel(interaction.channel) }}</StatusBadge>
+              <StatusBadge :variant="directionVariant(interaction.direction)" class="direction">
+                {{ directionLabel(interaction.direction) }}
+              </StatusBadge>
               <span class="occurred-at">{{ formatOccurredAt(interaction.occurredAt) }}</span>
             </div>
             <p class="body">{{ interaction.body }}</p>
             <p v-if="interaction.ticketId" class="ticket-link" data-testid="timeline-ticket-link">
-              Ticket #{{ interaction.ticketId }}
+              {{ t('communications.timeline.ticketRef', { id: interaction.ticketId }) }}
             </p>
             <div v-else class="associate-row">
               <select v-model="associateTargets[interaction.id]" data-testid="associate-select">
-                <option value="">Associate with a ticket…</option>
+                <option value="">{{ t('communications.timeline.associatePlaceholder') }}</option>
                 <option v-for="ticket in store.ticketsForSelectedCustomer" :key="ticket.id" :value="ticket.id">
                   {{ ticketLabel(ticket) }}
                 </option>
               </select>
               <button class="btn btn-secondary btn-sm" type="button" data-testid="associate-button" @click="onAssociate(interaction.id)">
-                Associate
+                {{ t('communications.timeline.associate') }}
               </button>
             </div>
           </li>

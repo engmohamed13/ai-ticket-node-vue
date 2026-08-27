@@ -1,0 +1,70 @@
+{
+  "title": "لوحة المتابعة الإدارية",
+  "subtitle": "حجم التذاكر والتزام اتفاقية مستوى الخدمة وعبء الموظفين ورضا العملاء.",
+  "loading": "جارٍ تحميل لوحة المتابعة…",
+  "filters": {
+    "from": "من",
+    "to": "إلى",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "agent": "الموظف",
+    "allStatuses": "جميع الحالات",
+    "allPriorities": "جميع الأولويات",
+    "allAgents": "جميع الموظفين",
+    "apply": "تطبيق"
+  },
+  "kpis": {
+    "total": "إجمالي التذاكر",
+    "open": "مفتوحة",
+    "pending": "معلّقة",
+    "resolved": "تم حلها",
+    "overdue": "متأخرة",
+    "satisfaction": "رضا العملاء",
+    "satisfactionValue": "{rating} من {scale}",
+    "ratings": "{count} تقييم"
+  },
+  "status": {
+    "New": "جديدة",
+    "Open": "مفتوحة",
+    "In Progress": "قيد المعالجة",
+    "Pending": "معلّقة",
+    "Resolved": "تم حلها",
+    "Closed": "مغلقة"
+  },
+  "priority": {
+    "Low": "منخفضة",
+    "Medium": "متوسطة",
+    "High": "عالية",
+    "Urgent": "عاجلة"
+  },
+  "panels": {
+    "byStatus": "التذاكر حسب الحالة",
+    "byPriority": "التذاكر حسب الأولوية",
+    "trends": "المنشأة مقابل المحلولة، أسبوعيًا",
+    "workload": "عبء عمل الموظفين",
+    "topArticles": "أكثر مقالات قاعدة المعرفة قراءةً"
+  },
+  "trends": {
+    "emptyTitle": "لا توجد بيانات اتجاهات",
+    "emptyDescription": "لم يتم فتح أو إغلاق أي تذكرة في هذه الفترة.",
+    "createdTooltip": "{count} تذكرة منشأة",
+    "resolvedTooltip": "{count} تذكرة تم حلها",
+    "legendCreated": "المنشأة",
+    "legendResolved": "المحلولة"
+  },
+  "workload": {
+    "emptyTitle": "لا توجد تذاكر مُسندة",
+    "emptyDescription": "لا شيء يطابق هذه الفلاتر، لذا لا توجد تذاكر في قائمة أي موظف.",
+    "agent": "الموظف",
+    "assigned": "المُسندة",
+    "open": "مفتوحة",
+    "pending": "معلّقة",
+    "resolved": "تم حلها",
+    "overdue": "متأخرة"
+  },
+  "articles": {
+    "emptyTitle": "لا توجد مقالات منشورة",
+    "emptyDescription": "انشر مقالًا في قاعدة المعرفة وستظهر نسبة قراءته هنا.",
+    "views": "{count} مشاهدة"
+  }
+}

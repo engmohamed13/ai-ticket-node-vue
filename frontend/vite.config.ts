@@ -11,5 +11,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // Installs vue-i18n into the global test-utils config so every spec can mount a
+    // view that calls useI18n() without registering the plugin itself.
+    setupFiles: ['./src/tests/setup.ts'],
   }
 })

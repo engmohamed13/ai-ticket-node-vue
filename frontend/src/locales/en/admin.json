@@ -1,0 +1,39 @@
+{
+  "users": {
+    "title": "Users",
+    "subtitle": "The user directory, roles, and org assignments.",
+    "createTitle": "Create user",
+    "createSubmit": "Create user",
+    "readOnlyHint": "You have read-only access to the user directory.",
+    "loading": "Loading users…",
+    "emptyTitle": "No users yet",
+    "emptyDescription": "Users created by an administrator will show up here.",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "role": "Role",
+      "branch": "Branch",
+      "department": "Department",
+      "customerId": "Customer ID",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "rolePlaceholder": "Select a role…",
+    "noBranch": "No branch",
+    "noDepartment": "No department",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "newPassword": "New password",
+    "resetPassword": "Reset",
+    "deactivate": "Deactivate"
+  },
+  "roles": {
+    "title": "Roles & Permissions",
+    "subtitle": "Control what each role can see and do.",
+    "loading": "Loading roles…",
+    "adminWarning": "The System Administrator role must keep Users manage and Roles manage."
+  }
+}

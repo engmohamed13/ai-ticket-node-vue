@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { usePortalStore } from '../stores/portal';
 import { FEEDBACK_RATING_MAX, FEEDBACK_RATING_MIN } from '../types';
@@ -12,6 +13,7 @@ import StatusBadge from '../components/ui/StatusBadge.vue';
 
 const store = usePortalStore();
 const route = useRoute();
+const { t, locale } = useI18n();
 
 const ticketId = computed(() => Number(route.params.id));
 
@@ -52,7 +54,7 @@ const priorityVariant = (priority: TicketPriority): 'neutral' | 'primary' | 'war
   }
 };
 
-const formatDateTime = (value: string): string => new Date(value).toLocaleString();
+const formatDateTime = (value: string): string => new Date(value).toLocaleString(locale.value);
 
 const onSubmitFeedback = async (): Promise<void> => {
   if (rating.value < FEEDBACK_RATING_MIN) return;
@@ -83,12 +85,12 @@ watch(ticketId, (next) => {
 <template>
   <section class="view">
     <PageHeader
-      :title="store.selectedTicket?.subject ?? 'Ticket'"
-      subtitle="The current status of your request, and your feedback once it is closed."
+      :title="store.selectedTicket?.subject ?? t('portal.detail.fallbackTitle')"
+      :subtitle="t('portal.detail.subtitle')"
     >
       <template #actions>
         <RouterLink class="btn btn-secondary" :to="{ name: 'portal' }" data-testid="portal-back-link">
-          Back to my tickets
+          {{ t('portal.detail.backToList') }}
         </RouterLink>
       </template>
     </PageHeader>
@@ -101,28 +103,28 @@ watch(ticketId, (next) => {
     </AlertBanner>
 
     <LoadingState v-if="store.detailLoading" data-testid="portal-detail-loading">
-      Loading this ticket…
+      {{ t('portal.detail.loading') }}
     </LoadingState>
 
     <EmptyState
       v-else-if="!store.selectedTicket"
-      title="Ticket not found"
-      description="It may have been removed, or the link is incorrect."
+      :title="t('portal.detail.missingTitle')"
+      :description="t('portal.detail.missingDescription')"
       data-testid="portal-detail-missing"
     />
 
     <template v-else>
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Request details</h3>
+          <h3 class="card-title">{{ t('portal.detail.requestDetails') }}</h3>
         </div>
         <dl class="card-padded detail-grid" data-testid="portal-ticket-detail">
           <div>
-            <dt>Reference</dt>
+            <dt>{{ t('portal.detail.fields.reference') }}</dt>
             <dd>#{{ store.selectedTicket.id }}</dd>
           </div>
           <div>
-            <dt>Status</dt>
+            <dt>{{ t('portal.detail.fields.status') }}</dt>
             <dd>
               <StatusBadge :variant="statusVariant(store.selectedTicket.status)" data-testid="portal-detail-status">
                 {{ store.selectedTicket.status }}
@@ -130,7 +132,7 @@ watch(ticketId, (next) => {
             </dd>
           </div>
           <div>
-            <dt>Priority</dt>
+            <dt>{{ t('portal.detail.fields.priority') }}</dt>
             <dd>
               <StatusBadge :variant="priorityVariant(store.selectedTicket.priority)">
                 {{ store.selectedTicket.priority }}
@@ -138,19 +140,19 @@ watch(ticketId, (next) => {
             </dd>
           </div>
           <div>
-            <dt>Category</dt>
-            <dd>{{ store.selectedTicket.category?.name ?? '—' }}</dd>
+            <dt>{{ t('portal.detail.fields.category') }}</dt>
+            <dd>{{ store.selectedTicket.category?.name ?? t('common.states.none') }}</dd>
           </div>
           <div>
-            <dt>Opened</dt>
+            <dt>{{ t('portal.detail.fields.opened') }}</dt>
             <dd>{{ formatDateTime(store.selectedTicket.createdAt) }}</dd>
           </div>
           <div>
-            <dt>Last updated</dt>
+            <dt>{{ t('portal.detail.fields.lastUpdated') }}</dt>
             <dd>{{ formatDateTime(store.selectedTicket.updatedAt) }}</dd>
           </div>
           <div v-if="store.selectedTicket.resolvedAt">
-            <dt>Resolved</dt>
+            <dt>{{ t('portal.detail.fields.resolved') }}</dt>
             <dd>{{ formatDateTime(store.selectedTicket.resolvedAt) }}</dd>
           </div>
         </dl>
@@ -158,7 +160,7 @@ watch(ticketId, (next) => {
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Your feedback</h3>
+          <h3 class="card-title">{{ t('portal.feedback.title') }}</h3>
         </div>
 
         <div v-if="store.feedback" class="card-padded" data-testid="portal-feedback-summary">
@@ -169,8 +171,10 @@ watch(ticketId, (next) => {
             <span class="stars" aria-hidden="true">{{ '★'.repeat(store.feedback.rating) }}</span>
           </p>
           <p v-if="store.feedback.comment" class="feedback-comment">{{ store.feedback.comment }}</p>
-          <p v-else class="muted">No additional comment.</p>
-          <p class="muted submitted-at">Submitted {{ formatDateTime(store.feedback.createdAt) }}</p>
+          <p v-else class="muted">{{ t('portal.feedback.noComment') }}</p>
+          <p class="muted submitted-at">
+            {{ t('portal.feedback.submittedAt', { date: formatDateTime(store.feedback.createdAt) }) }}
+          </p>
         </div>
 
         <form
@@ -180,7 +184,7 @@ watch(ticketId, (next) => {
           @submit.prevent="onSubmitFeedback"
         >
           <fieldset class="rating-field">
-            <legend>How did we do?</legend>
+            <legend>{{ t('portal.feedback.prompt') }}</legend>
             <div class="rating-options">
               <button
                 v-for="value in RATINGS"
@@ -189,18 +193,20 @@ watch(ticketId, (next) => {
                 :class="{ 'is-selected': value <= rating }"
                 type="button"
                 :aria-pressed="value === rating"
-                :aria-label="`${value} out of ${FEEDBACK_RATING_MAX}`"
+                :aria-label="t('portal.feedback.starAriaLabel', { value, max: FEEDBACK_RATING_MAX })"
                 :data-testid="`portal-feedback-star-${value}`"
                 @click="rating = value"
               >
                 ★
               </button>
-              <span class="muted">{{ rating === 0 ? 'Pick a rating' : `${rating}/${FEEDBACK_RATING_MAX}` }}</span>
+              <span class="muted">
+                {{ rating === 0 ? t('portal.feedback.pickRating') : `${rating}/${FEEDBACK_RATING_MAX}` }}
+              </span>
             </div>
           </fieldset>
 
           <div class="form-field">
-            <label for="portal-feedback-comment">Anything you would like to add? (optional)</label>
+            <label for="portal-feedback-comment">{{ t('portal.feedback.commentLabel') }}</label>
             <textarea
               id="portal-feedback-comment"
               v-model="comment"
@@ -217,14 +223,14 @@ watch(ticketId, (next) => {
               :disabled="rating < FEEDBACK_RATING_MIN || store.submitting"
               data-testid="portal-submit-feedback-button"
             >
-              {{ store.submitting ? 'Submitting…' : 'Submit feedback' }}
+              {{ store.submitting ? t('portal.feedback.submitting') : t('portal.feedback.submit') }}
             </button>
           </div>
         </form>
 
         <div v-else class="card-padded">
           <p class="muted" data-testid="portal-feedback-locked">
-            You will be able to rate this request once it has been resolved.
+            {{ t('portal.feedback.locked') }}
           </p>
         </div>
       </div>

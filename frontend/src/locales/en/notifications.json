@@ -1,0 +1,38 @@
+{
+  "title": "Notifications",
+  "bellLabel": "Notifications",
+  "bellLabelUnread": "Notifications, {count} unread",
+  "markAllRead": "Mark all read",
+  "markRead": "Mark read",
+  "unreadOnly": "Unread only",
+  "emptyTitle": "No notifications yet",
+  "emptyUnreadTitle": "Nothing unread",
+  "emptyDescription": "Assignments, status changes, comments, SLA breaches, and customer feedback show up here.",
+  "openTicket": "Open ticket #{id}",
+  "dismissToast": "Dismiss notification",
+  "types": {
+    "ticket_assigned": "Assignment",
+    "ticket_status_changed": "Status",
+    "ticket_comment": "Comment",
+    "ticket_overdue": "Overdue",
+    "feedback_received": "Feedback"
+  },
+  "sla": {
+    "firstResponse": "First response",
+    "resolution": "Resolution",
+    "noTarget": "No target",
+    "target": "Target {target}",
+    "elapsedOfTarget": "{elapsed} of {target}",
+    "overall": {
+      "met": "On time",
+      "overdue": "Overdue",
+      "due": "Within SLA",
+      "none": "No SLA"
+    },
+    "state": {
+      "met": "Met",
+      "overdue": "Overdue",
+      "due": "Pending"
+    }
+  }
+}

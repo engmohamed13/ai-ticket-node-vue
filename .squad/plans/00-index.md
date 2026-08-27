@@ -10,3 +10,4 @@ One row per feature folder under `.squad/plans/`. `NN` continues as a global exe
 | customermanagement | [customermanagement/00-overview.md](customermanagement/00-overview.md) | 10–12 |
 | ticketmanagementagentworkflow | [ticketmanagementagentworkflow/00-overview.md](ticketmanagementagentworkflow/00-overview.md) | 13–15 |
 | customerportalknowledgebasemanagementdashboard | [customerportalknowledgebasemanagementdashboard/00-overview.md](customerportalknowledgebasemanagementdashboard/00-overview.md) | 16–21 |
+| uienhancement | [uienhancement/00-overview.md](uienhancement/00-overview.md) | 22–26 |

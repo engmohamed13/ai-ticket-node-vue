@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useHealthStore } from '../stores/health';
 import PageHeader from '../components/ui/PageHeader.vue';
@@ -9,6 +10,7 @@ import StatusBadge from '../components/ui/StatusBadge.vue';
 const auth = useAuthStore();
 const healthStore = useHealthStore();
 const router = useRouter();
+const { t, te } = useI18n();
 
 onMounted(() => {
   if (!healthStore.payload) {
@@ -22,27 +24,25 @@ const statusVariant = computed(() => {
   return 'neutral';
 });
 
-const statusLabel = computed(() => healthStore.payload?.status ?? 'unknown');
+const statusLabel = computed(() => healthStore.payload?.status ?? t('dashboard.unknownStatus'));
 
-/** Icon + one-line description per module, keyed by route name. */
-const MODULE_INFO: Record<string, { icon: string; description: string }> = {
-  'system-health': {
-    icon: 'M22 12h-4l-3 9-6-18-3 9H2',
-    description: 'API and database status at a glance.'
-  },
-  communications: {
-    icon: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
-    description: 'Unified customer interaction timeline.'
-  },
-  users: {
-    icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
-    description: 'Manage the user directory and access.'
-  },
-  roles: {
-    icon: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z',
-    description: 'Review and edit role permissions.'
-  }
+/**
+ * Decorative icon per module, keyed by route name. The matching one-line description
+ * lives in the locale files under `dashboard.modules.<route name>` so it translates.
+ */
+const MODULE_ICONS: Record<string, string> = {
+  'system-health': 'M22 12h-4l-3 9-6-18-3 9H2',
+  communications: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
+  users:
+    'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
+  roles: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z'
 };
+
+const moduleDescription = (name: string): string =>
+  te(`dashboard.modules.${name}`) ? t(`dashboard.modules.${name}`) : '';
+
+const navLabel = (name: string, fallback: string): string =>
+  te(`nav.${name}`) ? t(`nav.${name}`) : fallback;
 
 /** Every navigable route this user can reach, excluding the dashboard itself. */
 const quickLinks = computed(() =>
@@ -55,34 +55,37 @@ const quickLinks = computed(() =>
 
 <template>
   <section class="view">
-    <PageHeader title="Dashboard" :subtitle="`Welcome back, ${auth.user?.name ?? 'there'}.`" />
+    <PageHeader
+      :title="t('dashboard.title')"
+      :subtitle="t('dashboard.welcome', { name: auth.user?.name ?? t('dashboard.welcomeFallbackName') })"
+    />
 
     <div class="kpi-grid">
       <div class="card card-padded kpi-card">
-        <span class="kpi-label">System status</span>
+        <span class="kpi-label">{{ t('dashboard.systemStatus') }}</span>
         <StatusBadge :variant="statusVariant" class="kpi-status">{{ statusLabel }}</StatusBadge>
       </div>
       <div class="card card-padded kpi-card">
-        <span class="kpi-label">Signed in as</span>
+        <span class="kpi-label">{{ t('dashboard.signedInAs') }}</span>
         <span class="kpi-value">{{ auth.user?.name }}</span>
         <span class="kpi-sub">{{ auth.user?.email }}</span>
       </div>
       <div class="card card-padded kpi-card">
-        <span class="kpi-label">Role</span>
+        <span class="kpi-label">{{ t('dashboard.role') }}</span>
         <span class="kpi-value">{{ auth.user?.roleName }}</span>
       </div>
       <div class="card card-padded kpi-card">
-        <span class="kpi-label">Permissions granted</span>
+        <span class="kpi-label">{{ t('dashboard.permissionsGranted') }}</span>
         <span class="kpi-value">{{ auth.permissions.length }}</span>
       </div>
     </div>
 
     <div class="quick-links-section">
-      <h3>Quick access</h3>
+      <h3>{{ t('dashboard.quickAccess') }}</h3>
       <div class="quick-links-grid">
         <RouterLink v-for="item in quickLinks" :key="item.name as string" :to="{ name: item.name }" class="card quick-link">
           <svg
-            v-if="MODULE_INFO[item.name as string]"
+            v-if="MODULE_ICONS[item.name as string]"
             class="quick-link-icon"
             width="22"
             height="22"
@@ -91,15 +94,15 @@ const quickLinks = computed(() =>
             aria-hidden="true"
           >
             <path
-              :d="MODULE_INFO[item.name as string].icon"
+              :d="MODULE_ICONS[item.name as string]"
               stroke="currentColor"
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
-          <span class="quick-link-title">{{ item.meta.navLabel }}</span>
-          <span class="quick-link-description">{{ MODULE_INFO[item.name as string]?.description }}</span>
+          <span class="quick-link-title">{{ navLabel(item.name as string, item.meta.navLabel as string) }}</span>
+          <span class="quick-link-description">{{ moduleDescription(item.name as string) }}</span>
         </RouterLink>
       </div>
     </div>
